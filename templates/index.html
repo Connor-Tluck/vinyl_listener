@@ -52,7 +52,7 @@
             top: 0;
             left: 0;
             right: 0;
-            padding: 20px 30px;
+            padding: 8px 15px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -61,28 +61,44 @@
         }
 
         .logo {
-            font-size: 1.2rem;
+            font-size: 0.9rem;
             font-weight: 600;
-            letter-spacing: 2px;
+            letter-spacing: 1px;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
         }
-
 
         .nav-links {
             display: flex;
-            gap: 30px;
+            gap: 15px;
+            align-items: center;
         }
 
         .nav-links a {
             color: rgba(255,255,255,0.7);
             text-decoration: none;
-            font-size: 0.9rem;
+            font-size: 0.8rem;
             transition: color 0.3s;
         }
 
         .nav-links a:hover, .nav-links a.active {
+            color: #fff;
+        }
+
+        .fullscreen-btn {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: rgba(255,255,255,0.7);
+            padding: 6px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            transition: all 0.2s;
+        }
+
+        .fullscreen-btn:hover {
+            background: rgba(255,255,255,0.2);
             color: #fff;
         }
 
@@ -93,23 +109,23 @@
             align-items: center;
             justify-content: center;
             min-height: 100vh;
-            padding: 100px 20px 40px;
+            padding: 50px 15px 60px;
         }
 
         /* Album art section */
         .album-container {
             display: flex;
             justify-content: center;
-            margin-bottom: 40px;
+            margin-bottom: 15px;
         }
 
         .album-art {
-            width: 350px;
-            height: 350px;
+            width: 200px;
+            height: 200px;
             background: linear-gradient(135deg, #333 0%, #222 100%);
             border-radius: 8px;
             overflow: hidden;
-            box-shadow: 0 25px 80px rgba(0,0,0,0.5);
+            box-shadow: 0 15px 50px rgba(0,0,0,0.5);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -122,28 +138,33 @@
         }
 
         .album-art .placeholder {
-            font-size: 6rem;
+            font-size: 4rem;
             opacity: 0.3;
         }
 
         /* Track info */
         .track-info {
             text-align: center;
-            max-width: 500px;
+            max-width: 100%;
+            padding: 0 10px;
         }
 
         .track-title-row {
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 15px;
-            margin-bottom: 8px;
+            gap: 10px;
+            margin-bottom: 4px;
         }
 
         .track-title {
-            font-size: 2rem;
+            font-size: 1.3rem;
             font-weight: 600;
             text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            max-width: 280px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
         .star-btn {
@@ -182,23 +203,27 @@
         }
 
         .track-artist {
-            font-size: 1.2rem;
+            font-size: 1rem;
             color: rgba(255,255,255,0.8);
-            margin-bottom: 20px;
+            margin-bottom: 8px;
         }
 
         .track-details {
             display: flex;
             justify-content: center;
-            gap: 25px;
-            font-size: 0.9rem;
+            gap: 15px;
+            font-size: 0.75rem;
             color: rgba(255,255,255,0.6);
         }
 
         .track-details span {
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 4px;
+            max-width: 140px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
         /* Status indicator */
@@ -207,7 +232,7 @@
             bottom: 0;
             left: 0;
             right: 0;
-            padding: 20px 30px;
+            padding: 8px 15px;
             background: linear-gradient(to top, rgba(0,0,0,0.5), transparent);
             display: flex;
             justify-content: space-between;
@@ -217,12 +242,12 @@
         .status-left {
             display: flex;
             align-items: center;
-            gap: 15px;
+            gap: 10px;
         }
 
         .status-dot {
-            width: 10px;
-            height: 10px;
+            width: 8px;
+            height: 8px;
             border-radius: 50%;
             background: #666;
         }
@@ -243,20 +268,20 @@
         }
 
         .status-text {
-            font-size: 0.9rem;
+            font-size: 0.7rem;
             color: rgba(255,255,255,0.7);
         }
 
         /* Audio visualizer */
         .audio-visualizer {
             display: flex;
-            gap: 3px;
-            height: 30px;
+            gap: 2px;
+            height: 20px;
             align-items: flex-end;
         }
 
         .audio-bar {
-            width: 4px;
+            width: 3px;
             background: linear-gradient(to top, #4ade80, #22d3ee);
             border-radius: 2px;
             transition: height 0.1s ease;
@@ -319,6 +344,7 @@
         <div class="nav-links">
             <a href="/" class="active">Now Playing</a>
             <a href="/history">History</a>
+            <button class="fullscreen-btn" id="fullscreenBtn" title="Toggle fullscreen">Fullscreen</button>
         </div>
     </nav>
 
@@ -557,6 +583,30 @@
         }
 
         starBtn.addEventListener('click', toggleStar);
+
+        // Fullscreen toggle
+        const fullscreenBtn = document.getElementById('fullscreenBtn');
+
+        function updateFullscreenButton() {
+            if (document.fullscreenElement) {
+                fullscreenBtn.textContent = 'Exit';
+            } else {
+                fullscreenBtn.textContent = 'Fullscreen';
+            }
+        }
+
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => {
+                    console.log('Fullscreen error:', err);
+                });
+            } else {
+                document.exitFullscreen();
+            }
+        }
+
+        fullscreenBtn.addEventListener('click', toggleFullscreen);
+        document.addEventListener('fullscreenchange', updateFullscreenButton);
 
         loadCurrentTrack();
         connectSSE();
