@@ -37,6 +37,12 @@ open http://localhost:8080
 
 ## Raspberry Pi Installation
 
+### Prerequisites
+
+- **Raspberry Pi OS Bookworm (64-bit)** - Use the latest version from Raspberry Pi Imager
+- Raspberry Pi 3, 4, or 5 (Pi 4/5 recommended for faster installs)
+- Internet connection
+
 ### Hardware Setup
 
 **Option A: Line-in (Recommended)**
@@ -50,46 +56,99 @@ open http://localhost:8080
 
 ### Software Setup
 
+Run these commands one section at a time. The pip install step takes 10-20 minutes on a Pi (numpy compiles from source).
+
 ```bash
-# 1. Update system
+# 1. Update system (do this first on a fresh install!)
 sudo apt update && sudo apt upgrade -y
+```
 
-# 2. Install system dependencies
-sudo apt install -y python3-pip python3-venv portaudio19-dev libffi-dev
+```bash
+# 2. Install ALL system dependencies
+sudo apt install -y \
+    python3-pip \
+    python3-venv \
+    python3-dev \
+    portaudio19-dev \
+    libportaudio2 \
+    libffi-dev \
+    git \
+    libopenblas-dev \
+    libatlas-base-dev
+```
 
-# 3. Optional: Install chromaprint for AcoustID fallback
-sudo apt install -y libchromaprint-tools
+```bash
+# 3. Optional: Install chromaprint for AcoustID fallback and ffmpeg
+sudo apt install -y libchromaprint-tools ffmpeg
+```
 
+```bash
 # 4. Clone the repository
+cd ~
 git clone https://github.com/Connor-Tluck/vinyl_listener.git
 cd vinyl_listener
+```
 
-# 5. Create virtual environment
+```bash
+# 5. Create virtual environment (IMPORTANT: do this inside the project folder!)
 python3 -m venv venv
 source venv/bin/activate
 
-# 6. Install Python dependencies
+# Verify you see (venv) at the start of your prompt before continuing
+```
+
+```bash
+# 6. Upgrade pip first (avoids some build issues)
+pip install --upgrade pip setuptools wheel
+```
+
+```bash
+# 7. Install Python dependencies (takes 10-20 min, be patient!)
 pip install -r requirements.txt
 
-# 7. Copy the Pi config template
-cp config.pi.yaml config.yaml
-# OR for microphone setup:
-# cp config.microphone.yaml config.yaml
-
-# 8. Find your audio device
-python run.py --list-devices
-# Note the name of your USB audio device (e.g., "USB Audio CODEC")
-
-# 9. Edit config.yaml with your device name
-nano config.yaml
-# Change audio_device to match your device name
-
-# 10. Start the app
-python run.py
-
-# 11. Open browser on Pi or another device on the network
-# http://<pi-ip-address>:8080
+# If numpy fails, try installing it separately first:
+# pip install numpy
+# pip install -r requirements.txt
 ```
+
+```bash
+# 8. Copy the Pi config template
+cp config.microphone.yaml config.yaml
+# OR for line-in setup:
+# cp config.pi.yaml config.yaml
+```
+
+```bash
+# 9. Find your USB audio device
+python run.py --list-devices
+# Note the name of your USB device (e.g., "USB PnP Sound Device")
+```
+
+```bash
+# 10. Edit config.yaml with your device name
+nano config.yaml
+# Change audio_device to match your device name (partial match works)
+# Example: audio_device: "USB PnP"
+# Save with Ctrl+O, Enter, Ctrl+X
+```
+
+```bash
+# 11. Start the app
+python run.py
+```
+
+```bash
+# 12. Open browser on Pi or another device on the network
+# Find your Pi's IP with: hostname -I
+# Then visit: http://<pi-ip-address>:8080
+```
+
+### Important Notes
+
+- **Always activate venv** before running: `source ~/vinyl_listener/venv/bin/activate`
+- **Python packages are slow to install** on Pi because they compile from source - this is normal
+- If you close the terminal and come back, you need to activate venv again
+- The `(venv)` prefix in your terminal prompt confirms the virtual environment is active
 
 ### Auto-start on Boot (systemd)
 
@@ -276,21 +335,49 @@ cp vinyl_history.db vinyl_history_backup.db
 
 ## Troubleshooting
 
+**"No module named sounddevice":**
+```bash
+# Make sure venv is activated (you should see (venv) in your prompt)
+source ~/vinyl_listener/venv/bin/activate
+
+# If still missing, install it:
+pip install sounddevice
+```
+
+**"PortAudio library not found":**
+```bash
+sudo apt install portaudio19-dev libportaudio2
+pip uninstall sounddevice && pip install sounddevice
+```
+
+**"No module named numpy" or numpy install fails:**
+```bash
+# Install build dependencies first
+sudo apt install libopenblas-dev libatlas-base-dev
+
+# Then install numpy (takes 10-15 min on Pi)
+pip install numpy
+```
+
+**apt errors about "repository no longer has a release file":**
+- Your Pi OS is too old. Flash a fresh Raspberry Pi OS Bookworm using Raspberry Pi Imager.
+
 **No audio devices found:**
 ```bash
-# Check if portaudio is installed
-# macOS:
-brew install portaudio
+# Check if your USB device is detected by Linux
+lsusb
 
-# Linux/Pi:
-sudo apt install portaudio19-dev
-pip uninstall sounddevice && pip install sounddevice
+# Check ALSA sees it
+arecord -l
+
+# If not listed, try unplugging and replugging the USB device
 ```
 
 **Shazam not identifying tracks:**
 - Ensure good audio quality (line-in preferred over microphone)
 - Check audio levels aren't too quiet or clipping
 - Try increasing `audio_gain` in config if signal is weak
+- Make sure the Pi has internet access
 
 **"Couldn't find ffmpeg" warning:**
 - This is optional, only needed for some audio processing
@@ -299,3 +386,10 @@ pip uninstall sounddevice && pip install sounddevice
 **Pi touchscreen not responding:**
 - Ensure `touch_mode: true` in config.yaml
 - Check touchscreen drivers are installed
+
+**Forgot to activate venv:**
+```bash
+cd ~/vinyl_listener
+source venv/bin/activate
+# You should see (venv) at the start of your prompt
+```
