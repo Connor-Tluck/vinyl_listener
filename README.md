@@ -150,6 +150,33 @@ python run.py
 - If you close the terminal and come back, you need to activate venv again
 - The `(venv)` prefix in your terminal prompt confirms the virtual environment is active
 
+### Managing via SSH
+
+You can control the Pi remotely from your Mac without needing to use the touchscreen:
+
+```bash
+# Connect to your Pi from your Mac
+ssh pi@vinyl-id.local
+# Enter your password when prompted
+
+# Stop the app
+sudo systemctl stop vinyl-id
+
+# Edit config
+nano ~/vinyl_listener/config.yaml
+
+# Restart the app
+sudo systemctl start vinyl-id
+
+# View live logs
+journalctl -u vinyl-id -f
+
+# Check status
+sudo systemctl status vinyl-id
+```
+
+This is the easiest way to change settings like `audio_mode` or `audio_device` without needing a keyboard connected to the Pi.
+
 ### Auto-start on Boot (systemd)
 
 ```bash
