@@ -220,7 +220,6 @@ def get_listens_by_date() -> list[dict]:
         FROM listens
         GROUP BY date(listened_at)
         ORDER BY date DESC
-        LIMIT 30
         """
     )
     rows = cursor.fetchall()

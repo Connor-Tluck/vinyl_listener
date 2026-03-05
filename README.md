@@ -10,37 +10,150 @@ A real-time vinyl record identifier that listens to your turntable and automatic
 - **Album art display** - Shows album artwork with dynamic background colors
 - **Star/favorite system** - Star tracks you love directly from the Now Playing screen
 - **Listening history** - Logs all identified tracks to a local database
-- **Calendar view** - Browse history by date with an interactive calendar
+- **Calendar view** - Browse history by date with an interactive calendar (color-coded by listen count)
 - **Top charts** - See your most played tracks and artists
 - **Search & filter** - Search your history by track, artist, or album; filter by starred tracks
 - **Duplicate prevention** - Won't log the same track twice within 10 minutes
 - **Touch-friendly** - Designed for Raspberry Pi with touchscreen
+- **Config file system** - Easy setup for different environments (desktop, Pi line-in, Pi microphone)
 
 ![History](app_images/screenshot_history_ui.png)
 
-## Installation
+## Quick Start (Desktop/Laptop)
 
 ```bash
-cd vinyl-id
+git clone https://github.com/Connor-Tluck/vinyl_listener.git
+cd vinyl_listener
 
 # Install Python dependencies
 pip install -r requirements.txt
 
-# Optional: Install chromaprint for AcoustID fallback (macOS)
-brew install chromaprint
-```
-
-## Usage
-
-```bash
-# Start the app
-python run.py --port 8080
+# Start the app (uses config.yaml automatically)
+python run.py
 
 # Open in browser
 open http://localhost:8080
 ```
 
-### Command Line Options
+## Raspberry Pi Installation
+
+### Hardware Setup
+
+**Option A: Line-in (Recommended)**
+- USB audio interface with line-in (e.g., Behringer UCA202)
+- RCA splitter cable
+- Connect: Turntable -> Preamp -> RCA Splitter -> Speakers + USB Audio Interface -> Pi
+
+**Option B: Microphone**
+- USB microphone
+- Position near speakers
+
+### Software Setup
+
+```bash
+# 1. Update system
+sudo apt update && sudo apt upgrade -y
+
+# 2. Install system dependencies
+sudo apt install -y python3-pip python3-venv portaudio19-dev libffi-dev
+
+# 3. Optional: Install chromaprint for AcoustID fallback
+sudo apt install -y libchromaprint-tools
+
+# 4. Clone the repository
+git clone https://github.com/Connor-Tluck/vinyl_listener.git
+cd vinyl_listener
+
+# 5. Create virtual environment
+python3 -m venv venv
+source venv/bin/activate
+
+# 6. Install Python dependencies
+pip install -r requirements.txt
+
+# 7. Copy the Pi config template
+cp config.pi.yaml config.yaml
+# OR for microphone setup:
+# cp config.microphone.yaml config.yaml
+
+# 8. Find your audio device
+python run.py --list-devices
+# Note the name of your USB audio device (e.g., "USB Audio CODEC")
+
+# 9. Edit config.yaml with your device name
+nano config.yaml
+# Change audio_device to match your device name
+
+# 10. Start the app
+python run.py
+
+# 11. Open browser on Pi or another device on the network
+# http://<pi-ip-address>:8080
+```
+
+### Auto-start on Boot (systemd)
+
+```bash
+# Create service file
+sudo nano /etc/systemd/system/vinyl-id.service
+```
+
+Paste this content (adjust paths as needed):
+
+```ini
+[Unit]
+Description=Vinyl ID
+After=network.target
+
+[Service]
+Type=simple
+User=pi
+WorkingDirectory=/home/pi/vinyl_listener
+ExecStart=/home/pi/vinyl_listener/venv/bin/python run.py
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
+```
+
+Enable and start:
+
+```bash
+sudo systemctl enable vinyl-id
+sudo systemctl start vinyl-id
+
+# Check status
+sudo systemctl status vinyl-id
+
+# View logs
+journalctl -u vinyl-id -f
+```
+
+### Kiosk Mode (Fullscreen Browser)
+
+For a dedicated display, run Chromium in kiosk mode:
+
+```bash
+# Install unclutter to hide cursor
+sudo apt install -y unclutter
+
+# Add to ~/.config/lxsession/LXDE-pi/autostart:
+@unclutter -idle 0
+@chromium-browser --kiosk --noerrdialogs --disable-infobars http://localhost:8080
+```
+
+## Desktop/Laptop Usage
+
+```bash
+# Start the app (loads config.yaml automatically)
+python run.py
+
+# Open in browser
+open http://localhost:8080
+```
+
+## Command Line Options
 
 ```bash
 python run.py --help
@@ -54,33 +167,15 @@ Options:
   --list-devices     List available audio input devices
 ```
 
-### Selecting an Audio Device
-
-```bash
-# List available devices
-python run.py --list-devices
-
-# Use a specific device (e.g., USB audio interface)
-python run.py --device 2 --port 8080
-
-# Or use device name (partial match)
-python run.py --device "USB Audio"
-```
-
 ## Configuration
 
-Settings are stored in `config.yaml`. Copy one of the example configs to get started:
+The app uses `config.yaml` for settings. Example configs are provided:
 
-```bash
-# For desktop/laptop use
-cp config.yaml config.yaml
-
-# For Raspberry Pi with line-in
-cp config.pi.yaml config.yaml
-
-# For Raspberry Pi with microphone
-cp config.microphone.yaml config.yaml
-```
+| File | Use Case |
+|------|----------|
+| `config.yaml` | Default (microphone, desktop) |
+| `config.pi.yaml` | Raspberry Pi with USB line-in |
+| `config.microphone.yaml` | Raspberry Pi with USB microphone |
 
 ### Config Options
 
@@ -178,3 +273,29 @@ Listening history is stored locally in `vinyl_history.db`. Back it up by copying
 ```bash
 cp vinyl_history.db vinyl_history_backup.db
 ```
+
+## Troubleshooting
+
+**No audio devices found:**
+```bash
+# Check if portaudio is installed
+# macOS:
+brew install portaudio
+
+# Linux/Pi:
+sudo apt install portaudio19-dev
+pip uninstall sounddevice && pip install sounddevice
+```
+
+**Shazam not identifying tracks:**
+- Ensure good audio quality (line-in preferred over microphone)
+- Check audio levels aren't too quiet or clipping
+- Try increasing `audio_gain` in config if signal is weak
+
+**"Couldn't find ffmpeg" warning:**
+- This is optional, only needed for some audio processing
+- Install with: `brew install ffmpeg` (macOS) or `sudo apt install ffmpeg` (Linux)
+
+**Pi touchscreen not responding:**
+- Ensure `touch_mode: true` in config.yaml
+- Check touchscreen drivers are installed

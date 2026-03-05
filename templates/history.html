@@ -187,13 +187,41 @@
         }
 
         .calendar-day.has-listens {
-            background: #1e3a2f;
-            color: #4ade80;
             cursor: pointer;
         }
 
-        .calendar-day.has-listens:hover {
+        /* Light listening (1-2 songs) */
+        .calendar-day.listen-light {
+            background: #1a2e25;
+            color: #6ee7a0;
+        }
+
+        .calendar-day.listen-light:hover {
+            background: #223d30;
+        }
+
+        /* Medium listening (3-5 songs) */
+        .calendar-day.listen-medium {
+            background: #1e3a2f;
+            color: #4ade80;
+        }
+
+        .calendar-day.listen-medium:hover {
             background: #2a4d3d;
+        }
+
+        /* Heavy listening (6+ songs) */
+        .calendar-day.listen-heavy {
+            background: #2d5a3f;
+            color: #22c55e;
+            font-weight: 600;
+            font-size: 0.75rem;
+            flex-direction: column;
+            line-height: 1.1;
+        }
+
+        .calendar-day.listen-heavy:hover {
+            background: #3a6d4d;
         }
 
         .calendar-day.selected {
@@ -225,6 +253,31 @@
         .clear-filter.hidden {
             display: none;
         }
+
+        .calendar-legend {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 12px;
+            font-size: 0.7rem;
+            color: #666;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .legend-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 2px;
+        }
+
+        .legend-dot.light { background: #1a2e25; }
+        .legend-dot.medium { background: #1e3a2f; }
+        .legend-dot.heavy { background: #2d5a3f; }
 
         /* Main content */
         .main-panel {
@@ -604,6 +657,11 @@
                     </div>
                 </div>
                 <div class="calendar-grid" id="calendarGrid"></div>
+                <div class="calendar-legend">
+                    <div class="legend-item"><div class="legend-dot light"></div>1-5</div>
+                    <div class="legend-item"><div class="legend-dot medium"></div>6-19</div>
+                    <div class="legend-item"><div class="legend-dot heavy"></div>20+🔥</div>
+                </div>
                 <button class="clear-filter hidden" id="clearFilter">Clear filter</button>
             </div>
 
@@ -641,7 +699,7 @@
     <script>
         let allListens = [];
         let playCounts = {};
-        let listenDates = new Set();
+        let listenDates = new Map(); // Map of date -> count
         let currentMonth = new Date();
         let selectedDate = null;
         let showStarredOnly = false;
@@ -672,8 +730,15 @@
         async function loadListenDates() {
             const res = await fetch('/api/listens-by-date');
             const data = await res.json();
-            listenDates = new Set(data.map(d => d.date));
+            listenDates = new Map(data.map(d => [d.date, d.count]));
             renderCalendar();
+        }
+
+        function getListenIntensity(count) {
+            // Returns intensity class and optional emoji
+            if (count >= 20) return { class: 'listen-heavy', emoji: '🔥' };
+            if (count >= 6) return { class: 'listen-medium', emoji: '' };
+            return { class: 'listen-light', emoji: '' };
         }
 
         function renderCalendar() {
@@ -705,16 +770,26 @@
             for (let day = 1; day <= daysInMonth; day++) {
                 const date = new Date(year, month, day);
                 const dateStr = toDateString(date);
-                const hasListens = listenDates.has(dateStr);
+                const listenCount = listenDates.get(dateStr) || 0;
+                const hasListens = listenCount > 0;
                 const isToday = dateStr === todayStr;
                 const isSelected = selectedDate === dateStr;
 
                 let classes = 'calendar-day current-month';
-                if (hasListens) classes += ' has-listens';
+                let displayText = day;
+
+                if (hasListens) {
+                    classes += ' has-listens';
+                    const intensity = getListenIntensity(listenCount);
+                    classes += ` ${intensity.class}`;
+                    if (intensity.emoji) {
+                        displayText = `${day}${intensity.emoji}`;
+                    }
+                }
                 if (isToday) classes += ' today';
                 if (isSelected) classes += ' selected';
 
-                html += `<div class="${classes}" data-date="${dateStr}">${day}</div>`;
+                html += `<div class="${classes}" data-date="${dateStr}" title="${listenCount} song${listenCount !== 1 ? 's' : ''}">${displayText}</div>`;
             }
 
             grid.innerHTML = html;
