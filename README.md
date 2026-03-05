@@ -8,11 +8,13 @@ A real-time vinyl record identifier that listens to your turntable and automatic
 
 - **Real-time identification** - Continuously listens and identifies tracks every 15 seconds
 - **Album art display** - Shows album artwork with dynamic background colors
+- **Star/favorite system** - Star tracks you love directly from the Now Playing screen
 - **Listening history** - Logs all identified tracks to a local database
 - **Calendar view** - Browse history by date with an interactive calendar
 - **Top charts** - See your most played tracks and artists
-- **Search & filter** - Search your history by track, artist, or album
+- **Search & filter** - Search your history by track, artist, or album; filter by starred tracks
 - **Duplicate prevention** - Won't log the same track twice within 10 minutes
+- **Touch-friendly** - Designed for Raspberry Pi with touchscreen
 
 ![History](app_images/screenshot_history_ui.png)
 
@@ -96,6 +98,19 @@ vinyl-id/
 - Shazam (via shazamio) - Free
 - AcoustID/MusicBrainz - Free
 - SQLite - Local storage
+
+## Star System
+
+You can star/favorite tracks to mark ones you love:
+
+- **Now Playing page** - Tap the star button next to the track title to favorite it
+- **History page** - Click the star icon on any row to toggle it
+- **Filter starred** - Click the "Starred" button to show only your favorited tracks
+
+Starred tracks are stored in the database and persist across sessions. This is useful for:
+- Marking standout tracks while listening
+- Building a list of favorites to revisit
+- Filtering your history to see only the tracks you loved
 
 ## Database
 

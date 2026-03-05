@@ -274,6 +274,28 @@
             filter: invert(0.7);
         }
 
+        .filter-btn {
+            padding: 10px 14px;
+            background: #1a1a1a;
+            border: 1px solid #2a2a2a;
+            border-radius: 6px;
+            color: #888;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .filter-btn:hover {
+            background: #222;
+            color: #fff;
+        }
+
+        .filter-btn.active {
+            background: #2a3a2a;
+            border-color: #4ade80;
+            color: #4ade80;
+        }
+
         /* Table */
         .table-container {
             background: #1a1a1a;
@@ -371,6 +393,21 @@
             border-radius: 4px;
             font-size: 0.75rem;
             color: #4ade80;
+        }
+
+        .star-cell {
+            cursor: pointer;
+            font-size: 1.1rem;
+            color: #444;
+            transition: color 0.2s;
+        }
+
+        .star-cell:hover {
+            color: #fbbf24;
+        }
+
+        .star-cell.starred {
+            color: #fbbf24;
         }
 
         /* Top lists */
@@ -532,6 +569,7 @@
             <div class="main-panel">
                 <div class="filters">
                     <input type="text" class="search-input" id="searchInput" placeholder="Search tracks, artists, albums...">
+                    <button class="filter-btn" id="starredFilter">★ Starred</button>
                     <input type="date" class="date-input" id="startDate">
                     <input type="date" class="date-input" id="endDate">
                 </div>
@@ -540,6 +578,7 @@
                     <table>
                         <thead>
                             <tr>
+                                <th style="width: 40px;">★</th>
                                 <th>Track</th>
                                 <th>Album</th>
                                 <th>Date</th>
@@ -564,6 +603,7 @@
         let listenDates = new Set();
         let currentMonth = new Date();
         let selectedDate = null;
+        let showStarredOnly = false;
 
         function formatDate(dateStr) {
             const date = new Date(dateStr);
@@ -702,7 +742,7 @@
             container.innerHTML = artists.map((a, i) => `
                 <div class="top-item">
                     <span class="top-rank ${i < 3 ? 'gold' : ''}">${i + 1}</span>
-                    <div class="top-cover" style="display:flex;align-items:center;justify-content:center;color:#555;">♪</div>
+                    <div class="top-cover"></div>
                     <div class="top-info">
                         <div class="top-name">${a.artist}</div>
                         <div class="top-sub">${a.unique_tracks} tracks</div>
@@ -721,6 +761,7 @@
             if (query) url += `&q=${encodeURIComponent(query)}`;
             if (start) url += `&start=${start}`;
             if (end) url += `&end=${end}`;
+            if (showStarredOnly) url += `&starred=1`;
 
             const res = await fetch(url);
             allListens = await res.json();
@@ -728,11 +769,29 @@
             renderTable();
         }
 
+        async function toggleStar(listenId) {
+            const res = await fetch(`/api/star/${listenId}`, { method: 'POST' });
+            const data = await res.json();
+
+            // Update local data
+            const listen = allListens.find(l => l.id === listenId);
+            if (listen) {
+                listen.starred = data.starred ? 1 : 0;
+                renderTable();
+            }
+        }
+
+        function toggleStarredFilter() {
+            showStarredOnly = !showStarredOnly;
+            document.getElementById('starredFilter').classList.toggle('active', showStarredOnly);
+            loadHistory();
+        }
+
         function renderTable() {
             const tbody = document.getElementById('historyTable');
 
             if (!allListens.length) {
-                tbody.innerHTML = '<tr><td colspan="4" class="empty">No listens found</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="5" class="empty">No listens found</td></tr>';
                 return;
             }
 
@@ -740,6 +799,7 @@
                 const count = playCounts[`${l.track}|||${l.artist}`] || 1;
                 return `
                     <tr>
+                        <td class="star-cell ${l.starred ? 'starred' : ''}" data-id="${l.id}">${l.starred ? '★' : '☆'}</td>
                         <td>
                             <div class="track-cell">
                                 ${l.cover_url ? `<img src="${l.cover_url}" class="track-cover">` : '<div class="track-cover"></div>'}
@@ -755,6 +815,11 @@
                     </tr>
                 `;
             }).join('');
+
+            // Add click handlers for stars
+            tbody.querySelectorAll('.star-cell').forEach(cell => {
+                cell.addEventListener('click', () => toggleStar(parseInt(cell.dataset.id)));
+            });
         }
 
         // Event listeners
@@ -765,6 +830,7 @@
         });
         document.getElementById('startDate').addEventListener('change', loadHistory);
         document.getElementById('endDate').addEventListener('change', loadHistory);
+        document.getElementById('starredFilter').addEventListener('click', toggleStarredFilter);
 
         document.getElementById('prevMonth').addEventListener('click', () => {
             currentMonth.setMonth(currentMonth.getMonth() - 1);

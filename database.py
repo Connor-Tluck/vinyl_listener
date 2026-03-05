@@ -29,6 +29,7 @@ def init_db():
             confidence REAL,
             cover_url TEXT,
             session_id INTEGER,
+            starred INTEGER DEFAULT 0,
             listened_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """)
@@ -47,6 +48,10 @@ def init_db():
         pass
     try:
         conn.execute("ALTER TABLE listens ADD COLUMN session_id INTEGER")
+    except:
+        pass
+    try:
+        conn.execute("ALTER TABLE listens ADD COLUMN starred INTEGER DEFAULT 0")
     except:
         pass
     conn.commit()
@@ -95,18 +100,18 @@ def log_listen(
     return listen_id
 
 
-def get_recent_listens(limit: int = 50) -> list[dict]:
+def get_recent_listens(limit: int = 50, starred_only: bool = False) -> list[dict]:
     """Get recent listens from the database."""
     conn = get_connection()
-    cursor = conn.execute(
-        """
-        SELECT id, track, artist, album, year, source, confidence, cover_url, listened_at
+    sql = """
+        SELECT id, track, artist, album, year, source, confidence, cover_url, starred, listened_at
         FROM listens
-        ORDER BY listened_at DESC
-        LIMIT ?
-        """,
-        (limit,)
-    )
+    """
+    if starred_only:
+        sql += " WHERE starred = 1"
+    sql += " ORDER BY listened_at DESC LIMIT ?"
+
+    cursor = conn.execute(sql, (limit,))
     rows = cursor.fetchall()
     conn.close()
     return [dict(row) for row in rows]
@@ -117,7 +122,7 @@ def get_current_track() -> Optional[dict]:
     conn = get_connection()
     cursor = conn.execute(
         """
-        SELECT id, track, artist, album, year, source, confidence, cover_url, listened_at
+        SELECT id, track, artist, album, year, source, confidence, cover_url, starred, listened_at
         FROM listens
         ORDER BY listened_at DESC
         LIMIT 1
@@ -132,17 +137,21 @@ def search_listens(
     query: Optional[str] = None,
     start_date: Optional[str] = None,
     end_date: Optional[str] = None,
+    starred_only: bool = False,
     limit: int = 100
 ) -> list[dict]:
     """Search listens with filters."""
     conn = get_connection()
 
     sql = """
-        SELECT id, track, artist, album, year, source, confidence, cover_url, listened_at
+        SELECT id, track, artist, album, year, source, confidence, cover_url, starred, listened_at
         FROM listens
         WHERE 1=1
     """
     params = []
+
+    if starred_only:
+        sql += " AND starred = 1"
 
     if query:
         sql += " AND (track LIKE ? OR artist LIKE ? OR album LIKE ?)"
@@ -326,6 +335,55 @@ def get_session_listens(session_id: int) -> list[dict]:
         ORDER BY listened_at ASC
         """,
         (session_id,)
+    )
+    rows = cursor.fetchall()
+    conn.close()
+    return [dict(row) for row in rows]
+
+
+def toggle_star(listen_id: int) -> bool:
+    """Toggle starred status for a listen. Returns new starred state."""
+    conn = get_connection()
+    cursor = conn.execute("SELECT starred FROM listens WHERE id = ?", (listen_id,))
+    row = cursor.fetchone()
+    if not row:
+        conn.close()
+        return False
+
+    new_starred = 0 if row[0] else 1
+    conn.execute("UPDATE listens SET starred = ? WHERE id = ?", (new_starred, listen_id))
+    conn.commit()
+    conn.close()
+    return bool(new_starred)
+
+
+def star_album(album: str, artist: str, starred: bool = True) -> int:
+    """Star/unstar all tracks from an album. Returns count of updated tracks."""
+    conn = get_connection()
+    cursor = conn.execute(
+        "UPDATE listens SET starred = ? WHERE album = ? AND artist = ?",
+        (1 if starred else 0, album, artist)
+    )
+    count = cursor.rowcount
+    conn.commit()
+    conn.close()
+    return count
+
+
+def get_starred_albums() -> list[dict]:
+    """Get albums that have starred tracks."""
+    conn = get_connection()
+    cursor = conn.execute(
+        """
+        SELECT DISTINCT album, artist, cover_url, year,
+               COUNT(*) as track_count,
+               SUM(starred) as starred_count
+        FROM listens
+        WHERE album IS NOT NULL
+        GROUP BY album, artist
+        HAVING starred_count > 0
+        ORDER BY MAX(listened_at) DESC
+        """
     )
     rows = cursor.fetchall()
     conn.close()

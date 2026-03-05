@@ -7,7 +7,7 @@ from flask import Flask, jsonify, render_template, Response, request
 from database import (
     get_recent_listens, get_current_track, get_listen_stats, log_listen,
     search_listens, get_top_tracks, get_top_artists, get_listens_by_date,
-    get_sessions, get_session_listens
+    get_sessions, get_session_listens, toggle_star, get_starred_albums
 )
 
 app = Flask(__name__)
@@ -64,10 +64,11 @@ def api_history():
     query = request.args.get('q')
     start_date = request.args.get('start')
     end_date = request.args.get('end')
+    starred_only = request.args.get('starred') == '1'
     limit = request.args.get('limit', 100, type=int)
 
-    if query or start_date or end_date:
-        listens = search_listens(query, start_date, end_date, limit)
+    if query or start_date or end_date or starred_only:
+        listens = search_listens(query, start_date, end_date, starred_only, limit)
     else:
         listens = get_recent_listens(limit)
 
@@ -117,6 +118,20 @@ def api_session_listens(session_id):
     """Get listens for a specific session."""
     listens = get_session_listens(session_id)
     return jsonify(listens)
+
+
+@app.route("/api/star/<int:listen_id>", methods=["POST"])
+def api_toggle_star(listen_id):
+    """Toggle star status for a listen."""
+    new_status = toggle_star(listen_id)
+    return jsonify({"starred": new_status})
+
+
+@app.route("/api/starred-albums")
+def api_starred_albums():
+    """Get albums with starred tracks."""
+    albums = get_starred_albums()
+    return jsonify(albums)
 
 
 @app.route("/api/events")
