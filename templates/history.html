@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vinyl ID - History</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #121212;
+            color: #e0e0e0;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #1a1a1a;
+            border-bottom: 1px solid #2a2a2a;
+            z-index: 100;
+        }
+
+        .logo {
+            font-size: 1.1rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 24px;
+        }
+
+        .nav-links a {
+            color: #888;
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+
+        .nav-links a:hover, .nav-links a.active {
+            color: #fff;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 70px 24px 20px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        h1 {
+            font-size: 1.3rem;
+            font-weight: 500;
+            margin-bottom: 16px;
+            flex-shrink: 0;
+        }
+
+        h2 {
+            font-size: 1rem;
+            font-weight: 500;
+            color: #888;
+            margin-bottom: 16px;
+        }
+
+        /* Stats row */
+        .stats-row {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+            flex-shrink: 0;
+        }
+
+        .stat {
+            background: #1a1a1a;
+            padding: 12px 16px;
+            border-radius: 8px;
+        }
+
+        .stat-value {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #fff;
+        }
+
+        .stat-label {
+            font-size: 0.7rem;
+            color: #666;
+            text-transform: uppercase;
+            margin-top: 2px;
+        }
+
+        /* Two column layout */
+        .two-col {
+            display: grid;
+            grid-template-columns: 260px 1fr;
+            gap: 16px;
+            flex: 1;
+            min-height: 0;
+            overflow: hidden;
+        }
+
+        /* Calendar */
+        .calendar-panel {
+            background: #1a1a1a;
+            border-radius: 8px;
+            padding: 14px;
+            height: fit-content;
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .calendar-header h2 {
+            margin: 0;
+        }
+
+        .calendar-nav {
+            display: flex;
+            gap: 8px;
+        }
+
+        .calendar-nav button {
+            background: #222;
+            border: none;
+            color: #888;
+            width: 28px;
+            height: 28px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        .calendar-nav button:hover {
+            background: #333;
+            color: #fff;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 4px;
+        }
+
+        .calendar-day-header {
+            text-align: center;
+            font-size: 0.7rem;
+            color: #555;
+            padding: 8px 0;
+        }
+
+        .calendar-day {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+            color: #555;
+            border-radius: 4px;
+            cursor: default;
+        }
+
+        .calendar-day.current-month {
+            color: #888;
+        }
+
+        .calendar-day.has-listens {
+            background: #1e3a2f;
+            color: #4ade80;
+            cursor: pointer;
+        }
+
+        .calendar-day.has-listens:hover {
+            background: #2a4d3d;
+        }
+
+        .calendar-day.selected {
+            background: #4ade80;
+            color: #000;
+        }
+
+        .calendar-day.today {
+            border: 1px solid #444;
+        }
+
+        .clear-filter {
+            margin-top: 12px;
+            width: 100%;
+            padding: 8px;
+            background: #222;
+            border: none;
+            color: #888;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+
+        .clear-filter:hover {
+            background: #333;
+            color: #fff;
+        }
+
+        .clear-filter.hidden {
+            display: none;
+        }
+
+        /* Main content */
+        .main-panel {
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Filters */
+        .filters {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 12px;
+            flex-shrink: 0;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 10px 14px;
+            background: #1a1a1a;
+            border: 1px solid #2a2a2a;
+            border-radius: 6px;
+            color: #fff;
+            font-size: 0.9rem;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #444;
+        }
+
+        .search-input::placeholder {
+            color: #555;
+        }
+
+        .date-input {
+            padding: 10px 12px;
+            background: #1a1a1a;
+            border: 1px solid #2a2a2a;
+            border-radius: 6px;
+            color: #fff;
+            font-size: 0.85rem;
+        }
+
+        .date-input::-webkit-calendar-picker-indicator {
+            filter: invert(0.7);
+        }
+
+        /* Table */
+        .table-container {
+            background: #1a1a1a;
+            border-radius: 8px;
+            overflow: hidden;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            flex-shrink: 0;
+        }
+
+        th {
+            text-align: left;
+            padding: 10px 14px;
+            font-size: 0.7rem;
+            font-weight: 500;
+            color: #666;
+            text-transform: uppercase;
+            background: #151515;
+            border-bottom: 1px solid #2a2a2a;
+            cursor: pointer;
+        }
+
+        th:hover {
+            color: #888;
+        }
+
+        .table-body {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        td {
+            padding: 10px 14px;
+            border-bottom: 1px solid #222;
+            font-size: 0.85rem;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover {
+            background: #1e1e1e;
+        }
+
+        .track-cell {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .track-cover {
+            width: 36px;
+            height: 36px;
+            border-radius: 4px;
+            background: #333;
+            object-fit: cover;
+            flex-shrink: 0;
+        }
+
+        .track-info {
+            min-width: 0;
+        }
+
+        .track-name {
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .track-artist {
+            font-size: 0.75rem;
+            color: #888;
+        }
+
+        .text-muted {
+            color: #666;
+            font-size: 0.8rem;
+        }
+
+        .play-count {
+            background: #222;
+            padding: 3px 7px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            color: #4ade80;
+        }
+
+        /* Top lists */
+        .top-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 16px;
+            flex-shrink: 0;
+        }
+
+        .top-card {
+            background: #1a1a1a;
+            border-radius: 8px;
+            padding: 12px;
+        }
+
+        .top-item {
+            display: flex;
+            align-items: center;
+            padding: 6px 0;
+            border-bottom: 1px solid #222;
+        }
+
+        .top-item:last-child {
+            border-bottom: none;
+        }
+
+        .top-rank {
+            width: 20px;
+            font-size: 0.8rem;
+            color: #555;
+            font-weight: 500;
+        }
+
+        .top-rank.gold { color: #fbbf24; }
+
+        .top-cover {
+            width: 28px;
+            height: 28px;
+            border-radius: 4px;
+            background: #333;
+            margin-right: 10px;
+            object-fit: cover;
+        }
+
+        .top-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .top-name {
+            font-size: 0.8rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .top-sub {
+            font-size: 0.7rem;
+            color: #666;
+        }
+
+        .top-count {
+            font-size: 0.75rem;
+            color: #666;
+        }
+
+        .empty {
+            text-align: center;
+            padding: 40px;
+            color: #555;
+        }
+
+        /* Scrollbar styling */
+        .table-body::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .table-body::-webkit-scrollbar-track {
+            background: #1a1a1a;
+        }
+
+        .table-body::-webkit-scrollbar-thumb {
+            background: #333;
+            border-radius: 3px;
+        }
+
+        .table-body::-webkit-scrollbar-thumb:hover {
+            background: #444;
+        }
+
+        @media (max-width: 900px) {
+            .two-col {
+                grid-template-columns: 1fr;
+            }
+            .sessions-panel {
+                position: static;
+            }
+            .top-section {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <div class="logo">
+            <span>VINYL ID</span>
+        </div>
+        <div class="nav-links">
+            <a href="/">Now Playing</a>
+            <a href="/history" class="active">History</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h1>Listening History</h1>
+
+        <div class="stats-row">
+            <div class="stat">
+                <div class="stat-value" id="totalPlays">0</div>
+                <div class="stat-label">Total Plays</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value" id="uniqueTracks">0</div>
+                <div class="stat-label">Tracks</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value" id="uniqueArtists">0</div>
+                <div class="stat-label">Artists</div>
+            </div>
+        </div>
+
+        <div class="top-section">
+            <div class="top-card">
+                <h2>Top Tracks</h2>
+                <div id="topTracks"></div>
+            </div>
+            <div class="top-card">
+                <h2>Top Artists</h2>
+                <div id="topArtists"></div>
+            </div>
+        </div>
+
+        <div class="two-col">
+            <div class="calendar-panel">
+                <div class="calendar-header">
+                    <h2 id="calendarMonth">March 2026</h2>
+                    <div class="calendar-nav">
+                        <button id="prevMonth">‹</button>
+                        <button id="nextMonth">›</button>
+                    </div>
+                </div>
+                <div class="calendar-grid" id="calendarGrid"></div>
+                <button class="clear-filter hidden" id="clearFilter">Clear filter</button>
+            </div>
+
+            <div class="main-panel">
+                <div class="filters">
+                    <input type="text" class="search-input" id="searchInput" placeholder="Search tracks, artists, albums...">
+                    <input type="date" class="date-input" id="startDate">
+                    <input type="date" class="date-input" id="endDate">
+                </div>
+
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Track</th>
+                                <th>Album</th>
+                                <th>Date</th>
+                                <th>Plays</th>
+                            </tr>
+                        </thead>
+                    </table>
+                    <div class="table-body">
+                        <table>
+                            <tbody id="historyTable">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let allListens = [];
+        let playCounts = {};
+        let listenDates = new Set();
+        let currentMonth = new Date();
+        let selectedDate = null;
+
+        function formatDate(dateStr) {
+            const date = new Date(dateStr);
+            const now = new Date();
+            const diff = now - date;
+            if (diff < 3600000) return `${Math.floor(diff / 60000)}m ago`;
+            if (diff < 86400000) return `${Math.floor(diff / 3600000)}h ago`;
+            return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+        }
+
+        function getPlayCounts(listens) {
+            const counts = {};
+            listens.forEach(l => {
+                const key = `${l.track}|||${l.artist}`;
+                counts[key] = (counts[key] || 0) + 1;
+            });
+            return counts;
+        }
+
+        function toDateString(date) {
+            return date.toISOString().split('T')[0];
+        }
+
+        // Calendar functions
+        async function loadListenDates() {
+            const res = await fetch('/api/listens-by-date');
+            const data = await res.json();
+            listenDates = new Set(data.map(d => d.date));
+            renderCalendar();
+        }
+
+        function renderCalendar() {
+            const grid = document.getElementById('calendarGrid');
+            const monthLabel = document.getElementById('calendarMonth');
+
+            const year = currentMonth.getFullYear();
+            const month = currentMonth.getMonth();
+
+            monthLabel.textContent = currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0);
+            const startDay = firstDay.getDay();
+            const daysInMonth = lastDay.getDate();
+
+            const today = new Date();
+            const todayStr = toDateString(today);
+
+            let html = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+                .map(d => `<div class="calendar-day-header">${d}</div>`).join('');
+
+            // Empty cells before first day
+            for (let i = 0; i < startDay; i++) {
+                html += '<div class="calendar-day"></div>';
+            }
+
+            // Days of month
+            for (let day = 1; day <= daysInMonth; day++) {
+                const date = new Date(year, month, day);
+                const dateStr = toDateString(date);
+                const hasListens = listenDates.has(dateStr);
+                const isToday = dateStr === todayStr;
+                const isSelected = selectedDate === dateStr;
+
+                let classes = 'calendar-day current-month';
+                if (hasListens) classes += ' has-listens';
+                if (isToday) classes += ' today';
+                if (isSelected) classes += ' selected';
+
+                html += `<div class="${classes}" data-date="${dateStr}">${day}</div>`;
+            }
+
+            grid.innerHTML = html;
+
+            // Add click handlers
+            grid.querySelectorAll('.calendar-day.has-listens').forEach(el => {
+                el.addEventListener('click', () => selectDate(el.dataset.date));
+            });
+        }
+
+        function selectDate(dateStr) {
+            selectedDate = dateStr;
+            document.getElementById('clearFilter').classList.remove('hidden');
+            renderCalendar();
+            loadHistory();
+        }
+
+        function clearDateFilter() {
+            selectedDate = null;
+            document.getElementById('clearFilter').classList.add('hidden');
+            renderCalendar();
+            loadHistory();
+        }
+
+        async function loadStats() {
+            const res = await fetch('/api/stats');
+            const stats = await res.json();
+            document.getElementById('totalPlays').textContent = stats.total_listens || 0;
+            document.getElementById('uniqueTracks').textContent = stats.unique_tracks || 0;
+            document.getElementById('uniqueArtists').textContent = stats.unique_artists || 0;
+        }
+
+        async function loadTopTracks() {
+            const res = await fetch('/api/top-tracks?limit=5');
+            const tracks = await res.json();
+            const container = document.getElementById('topTracks');
+
+            if (!tracks.length) {
+                container.innerHTML = '<div class="empty">No tracks yet</div>';
+                return;
+            }
+
+            container.innerHTML = tracks.map((t, i) => `
+                <div class="top-item">
+                    <span class="top-rank ${i < 3 ? 'gold' : ''}">${i + 1}</span>
+                    ${t.cover_url ? `<img src="${t.cover_url}" class="top-cover">` : '<div class="top-cover"></div>'}
+                    <div class="top-info">
+                        <div class="top-name">${t.track}</div>
+                        <div class="top-sub">${t.artist}</div>
+                    </div>
+                    <span class="top-count">${t.play_count}x</span>
+                </div>
+            `).join('');
+        }
+
+        async function loadTopArtists() {
+            const res = await fetch('/api/top-artists?limit=5');
+            const artists = await res.json();
+            const container = document.getElementById('topArtists');
+
+            if (!artists.length) {
+                container.innerHTML = '<div class="empty">No artists yet</div>';
+                return;
+            }
+
+            container.innerHTML = artists.map((a, i) => `
+                <div class="top-item">
+                    <span class="top-rank ${i < 3 ? 'gold' : ''}">${i + 1}</span>
+                    <div class="top-cover" style="display:flex;align-items:center;justify-content:center;color:#555;">♪</div>
+                    <div class="top-info">
+                        <div class="top-name">${a.artist}</div>
+                        <div class="top-sub">${a.unique_tracks} tracks</div>
+                    </div>
+                    <span class="top-count">${a.play_count}x</span>
+                </div>
+            `).join('');
+        }
+
+        async function loadHistory() {
+            const query = document.getElementById('searchInput').value;
+            const start = selectedDate || document.getElementById('startDate').value;
+            const end = selectedDate || document.getElementById('endDate').value;
+
+            let url = '/api/history?limit=200';
+            if (query) url += `&q=${encodeURIComponent(query)}`;
+            if (start) url += `&start=${start}`;
+            if (end) url += `&end=${end}`;
+
+            const res = await fetch(url);
+            allListens = await res.json();
+            playCounts = getPlayCounts(allListens);
+            renderTable();
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('historyTable');
+
+            if (!allListens.length) {
+                tbody.innerHTML = '<tr><td colspan="4" class="empty">No listens found</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = allListens.map(l => {
+                const count = playCounts[`${l.track}|||${l.artist}`] || 1;
+                return `
+                    <tr>
+                        <td>
+                            <div class="track-cell">
+                                ${l.cover_url ? `<img src="${l.cover_url}" class="track-cover">` : '<div class="track-cover"></div>'}
+                                <div class="track-info">
+                                    <div class="track-name">${l.track}</div>
+                                    <div class="track-artist">${l.artist}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="text-muted">${l.album || '-'} ${l.year ? `(${l.year})` : ''}</td>
+                        <td class="text-muted">${formatDate(l.listened_at)}</td>
+                        <td><span class="play-count">${count}x</span></td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // Event listeners
+        let searchTimeout;
+        document.getElementById('searchInput').addEventListener('input', () => {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(loadHistory, 300);
+        });
+        document.getElementById('startDate').addEventListener('change', loadHistory);
+        document.getElementById('endDate').addEventListener('change', loadHistory);
+
+        document.getElementById('prevMonth').addEventListener('click', () => {
+            currentMonth.setMonth(currentMonth.getMonth() - 1);
+            renderCalendar();
+        });
+        document.getElementById('nextMonth').addEventListener('click', () => {
+            currentMonth.setMonth(currentMonth.getMonth() + 1);
+            renderCalendar();
+        });
+        document.getElementById('clearFilter').addEventListener('click', clearDateFilter);
+
+        // Initial load
+        loadStats();
+        loadTopTracks();
+        loadTopArtists();
+        loadListenDates();
+        loadHistory();
+    </script>
+</body>
+</html>
