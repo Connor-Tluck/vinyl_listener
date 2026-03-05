@@ -308,7 +308,7 @@
         <div class="now-playing hidden" id="nowPlaying">
             <div class="album-container">
                 <div class="album-art" id="albumArt">
-                    <span class="placeholder"></span>
+                    <span class="placeholder">💿</span>
                 </div>
             </div>
 
@@ -319,8 +319,8 @@
                 </div>
                 <div class="track-artist" id="trackArtist">Unknown Artist</div>
                 <div class="track-details">
-                    <span id="trackAlbum">Unknown Album</span>
-                    <span id="trackYear">----</span>
+                    <span>💿 <span id="trackAlbum">Unknown Album</span></span>
+                    <span>📅 <span id="trackYear">----</span></span>
                 </div>
             </div>
         </div>
@@ -408,7 +408,7 @@
                 const img = document.getElementById('albumImage');
                 img.onload = () => extractColors(img);
             } else {
-                albumArt.innerHTML = '<span class="placeholder"></span>';
+                albumArt.innerHTML = '<span class="placeholder">💿</span>';
                 backgroundBlur.style.backgroundImage = '';
                 document.body.style.setProperty('--bg-color-1', '#1a1a2e');
                 document.body.style.setProperty('--bg-color-2', '#16213e');
