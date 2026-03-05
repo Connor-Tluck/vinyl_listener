@@ -281,6 +281,31 @@
         .hidden {
             display: none !important;
         }
+
+        /* Pi/Touch mode styles */
+        {% if display.touch_mode %}
+        .star-btn {
+            font-size: 3rem;
+            padding: 16px 20px;
+            min-width: 80px;
+            min-height: 80px;
+        }
+
+        .nav-links a {
+            font-size: 1.1rem;
+            padding: 10px 15px;
+        }
+        {% endif %}
+
+        {% if display.fullscreen %}
+        body {
+            cursor: none;
+        }
+
+        nav {
+            padding: 15px 20px;
+        }
+        {% endif %}
     </style>
 </head>
 <body>

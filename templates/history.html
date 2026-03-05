@@ -511,6 +511,47 @@
                 grid-template-columns: 1fr;
             }
         }
+
+        /* Pi/Touch mode styles */
+        {% if display.touch_mode %}
+        .filter-btn {
+            font-size: 1.1rem;
+            padding: 14px 18px;
+            min-height: 50px;
+        }
+
+        .search-input {
+            font-size: 1rem;
+            padding: 14px 16px;
+            min-height: 50px;
+        }
+
+        .nav-links a {
+            font-size: 1.1rem;
+            padding: 10px 15px;
+        }
+
+        .star-cell {
+            font-size: 1.4rem;
+            padding: 12px 14px;
+        }
+
+        .calendar-day {
+            font-size: 1rem;
+        }
+
+        .calendar-nav button {
+            width: 40px;
+            height: 40px;
+            font-size: 1.3rem;
+        }
+        {% endif %}
+
+        {% if display.fullscreen %}
+        body {
+            cursor: none;
+        }
+        {% endif %}
     </style>
 </head>
 <body>

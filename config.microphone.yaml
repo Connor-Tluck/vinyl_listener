@@ -1,0 +1,41 @@
+# Vinyl ID Configuration - Microphone Setup
+# For ambient pickup via USB microphone
+
+# =============================================================================
+# Audio Settings
+# =============================================================================
+
+# Using microphone to pick up audio from speakers
+audio_mode: microphone
+
+# USB microphone - adjust after running: python run.py --list-devices
+audio_device: null
+
+# Microphone gain (may need boost depending on mic sensitivity)
+audio_gain: 2.0
+
+# Higher silence threshold to filter ambient noise
+silence_threshold: 0.005
+
+# =============================================================================
+# Identification Settings
+# =============================================================================
+
+identification_interval: 15
+sample_duration: 15
+duplicate_window: 10
+
+# =============================================================================
+# Web Server Settings
+# =============================================================================
+
+port: 8080
+host: 0.0.0.0
+
+# =============================================================================
+# Display Settings
+# =============================================================================
+
+pi_mode: true
+fullscreen: true
+touch_mode: true

@@ -1,0 +1,62 @@
+# Vinyl ID Configuration
+# Copy this file to config.yaml and adjust settings as needed
+
+# =============================================================================
+# Audio Settings
+# =============================================================================
+
+# Audio input mode: "line_in" or "microphone"
+# - line_in: Direct connection from turntable/preamp (cleaner signal)
+# - microphone: Ambient pickup via microphone
+audio_mode: microphone
+
+# Audio input device (null = use system default)
+# Run `python run.py --list-devices` to see available devices
+# Can be device ID (integer) or partial device name (string)
+audio_device: null
+
+# Gain adjustment for input signal (1.0 = no adjustment)
+# - Line-in typically needs lower gain (0.5-1.0)
+# - Microphone may need higher gain (1.0-3.0)
+audio_gain: 1.0
+
+# Silence threshold (RMS level below which audio is considered silent)
+# - Line-in: 0.001 (direct signal has less noise)
+# - Microphone: 0.005 (ambient noise floor is higher)
+silence_threshold: 0.001
+
+# =============================================================================
+# Identification Settings
+# =============================================================================
+
+# How often to attempt identification (seconds)
+identification_interval: 15
+
+# Duration of audio to sample for identification (seconds)
+sample_duration: 15
+
+# Minutes to wait before logging the same track again
+duplicate_window: 10
+
+# =============================================================================
+# Web Server Settings
+# =============================================================================
+
+# Port for web UI
+port: 8080
+
+# Host to bind to (0.0.0.0 = all interfaces, 127.0.0.1 = localhost only)
+host: 0.0.0.0
+
+# =============================================================================
+# Display Settings (Pi Mode)
+# =============================================================================
+
+# Enable Pi/kiosk mode optimizations
+pi_mode: false
+
+# Fullscreen/kiosk mode CSS adjustments
+fullscreen: false
+
+# Larger touch targets for touchscreen use
+touch_mode: false

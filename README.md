@@ -46,9 +46,11 @@ open http://localhost:8080
 python run.py --help
 
 Options:
-  --port PORT        Web server port (default: 5000)
-  --device DEVICE    Audio input device ID
-  --interval SECS    Identification interval in seconds (default: 15)
+  --config FILE      Path to config file (default: config.yaml)
+  --port PORT        Web server port (overrides config)
+  --device DEVICE    Audio input device ID or name (overrides config)
+  --interval SECS    Identification interval in seconds (overrides config)
+  --pi-mode          Enable Pi/kiosk mode (fullscreen, larger touch targets)
   --list-devices     List available audio input devices
 ```
 
@@ -60,7 +62,61 @@ python run.py --list-devices
 
 # Use a specific device (e.g., USB audio interface)
 python run.py --device 2 --port 8080
+
+# Or use device name (partial match)
+python run.py --device "USB Audio"
 ```
+
+## Configuration
+
+Settings are stored in `config.yaml`. Copy one of the example configs to get started:
+
+```bash
+# For desktop/laptop use
+cp config.yaml config.yaml
+
+# For Raspberry Pi with line-in
+cp config.pi.yaml config.yaml
+
+# For Raspberry Pi with microphone
+cp config.microphone.yaml config.yaml
+```
+
+### Config Options
+
+```yaml
+# Audio Settings
+audio_mode: line_in      # "line_in" or "microphone"
+audio_device: "USB Audio" # Device name or ID (null = default)
+audio_gain: 1.0          # Gain adjustment (1.0 = no change)
+silence_threshold: 0.001 # RMS level below which audio is silent
+
+# Identification Settings
+identification_interval: 15  # Seconds between identification attempts
+sample_duration: 15          # Seconds of audio to sample
+duplicate_window: 10         # Minutes before re-logging same track
+
+# Web Server
+port: 8080
+host: 0.0.0.0
+
+# Display Settings (for Pi/touchscreen)
+pi_mode: false    # Enable Pi optimizations
+fullscreen: false # Hide cursor, kiosk mode
+touch_mode: false # Larger touch targets
+```
+
+### Line-in vs Microphone
+
+**Line-in** (recommended for best results):
+- Connect turntable to preamp, then split output to speakers and USB audio interface
+- Cleaner signal = better identification accuracy
+- Use lower gain (0.5-1.0) and lower silence threshold (0.001)
+
+**Microphone**:
+- Pick up audio from speakers via USB microphone
+- Easier setup, no cable splitters needed
+- May need higher gain (1.5-3.0) and higher silence threshold (0.005) to filter room noise
 
 ## How It Works
 
@@ -79,6 +135,9 @@ vinyl-id/
 ├── identifier.py       # Shazam + AcoustID identification
 ├── database.py         # SQLite database operations
 ├── vinyl_listener.py   # CLI-only listener (standalone)
+├── config.yaml         # Configuration file
+├── config.pi.yaml      # Example config for Pi with line-in
+├── config.microphone.yaml  # Example config for microphone setup
 ├── templates/
 │   ├── index.html      # Now Playing page
 │   └── history.html    # Listening History page

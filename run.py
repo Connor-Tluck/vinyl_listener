@@ -3,24 +3,98 @@
 Unified runner for Vinyl ID - starts both the web server and audio listener.
 
 Usage:
-    python run.py [--device DEVICE_ID] [--port PORT]
+    python run.py [--config CONFIG_FILE] [--device DEVICE_ID] [--port PORT]
 """
 
 import argparse
 import asyncio
+import os
 import signal
 import sys
 import threading
 import time
 from datetime import datetime
-from typing import Optional
+from pathlib import Path
+from typing import Optional, Union
 
 import numpy as np
 import sounddevice as sd
+import yaml
 
 from identifier import HybridIdentifier, IdentificationResult
 from database import log_listen, init_db
-from app import app, update_listener_state
+from app import app, update_listener_state, set_display_config
+
+
+# Default configuration
+DEFAULT_CONFIG = {
+    # Audio settings
+    "audio_mode": "microphone",  # "line_in" or "microphone"
+    "audio_device": None,
+    "audio_gain": 1.0,
+    "silence_threshold": 0.001,
+
+    # Identification settings
+    "identification_interval": 15,
+    "sample_duration": 15,
+    "duplicate_window": 10,
+
+    # Web server settings
+    "port": 8080,
+    "host": "0.0.0.0",
+
+    # Display settings
+    "pi_mode": False,
+    "fullscreen": False,
+    "touch_mode": False,
+}
+
+
+def load_config(config_path: Optional[str] = None) -> dict:
+    """Load configuration from YAML file, falling back to defaults."""
+    config = DEFAULT_CONFIG.copy()
+
+    # Look for config file
+    if config_path:
+        config_file = Path(config_path)
+    else:
+        # Check default locations
+        for path in ["config.yaml", "config.yml"]:
+            if Path(path).exists():
+                config_file = Path(path)
+                break
+        else:
+            config_file = None
+
+    if config_file and config_file.exists():
+        print(f"Loading config from: {config_file}")
+        with open(config_file) as f:
+            file_config = yaml.safe_load(f) or {}
+            config.update(file_config)
+
+    return config
+
+
+def resolve_audio_device(device_spec: Union[None, int, str]) -> Optional[int]:
+    """Resolve audio device from name or ID."""
+    if device_spec is None:
+        return None
+
+    if isinstance(device_spec, int):
+        return device_spec
+
+    # Search by name (partial match)
+    devices = sd.query_devices()
+    device_spec_lower = device_spec.lower()
+
+    for i, device in enumerate(devices):
+        if device['max_input_channels'] > 0:
+            if device_spec_lower in device['name'].lower():
+                print(f"Found audio device: [{i}] {device['name']}")
+                return i
+
+    print(f"Warning: Audio device '{device_spec}' not found, using default")
+    return None
 
 
 class WebAudioListener:
@@ -36,12 +110,18 @@ class WebAudioListener:
         buffer_duration: float = 20.0,
         sample_duration: float = 15.0,
         device: Optional[int] = None,
-        acoustid_api_key: Optional[str] = None
+        acoustid_api_key: Optional[str] = None,
+        audio_gain: float = 1.0,
+        silence_threshold: float = 0.001,
+        audio_mode: str = "microphone"
     ):
         self.identification_interval = identification_interval
         self.buffer_duration = buffer_duration
         self.sample_duration = sample_duration
         self.device = device
+        self.audio_gain = audio_gain
+        self.silence_threshold = silence_threshold
+        self.audio_mode = audio_mode
 
         self.identifier = HybridIdentifier(acoustid_api_key=acoustid_api_key)
         self.running = False
@@ -63,6 +143,13 @@ class WebAudioListener:
 
         with self.lock:
             samples = indata.flatten()
+
+            # Apply gain adjustment
+            if self.audio_gain != 1.0:
+                samples = samples * self.audio_gain
+                # Clip to prevent distortion
+                samples = np.clip(samples, -1.0, 1.0)
+
             n = len(samples)
 
             # Add to circular buffer
@@ -121,7 +208,7 @@ class WebAudioListener:
 
             # Check for silence
             rms = np.sqrt(np.mean(audio_data ** 2))
-            if rms < 0.001:
+            if rms < self.silence_threshold:
                 update_listener_state(message="Listening (quiet)")
                 continue
 
@@ -189,6 +276,9 @@ class WebAudioListener:
             default_device = sd.query_devices(sd.default.device[0])
             print(f"Input device: {default_device['name']} (default)")
 
+        print(f"Audio mode: {self.audio_mode}")
+        if self.audio_gain != 1.0:
+            print(f"Gain: {self.audio_gain}x")
         print("-" * 50)
 
         # Start audio stream
@@ -226,17 +316,19 @@ class WebAudioListener:
         print(f"\n[{self._format_time()}] Stopped.")
 
 
-def run_flask(port: int):
+def run_flask(port: int, host: str = "0.0.0.0"):
     """Run Flask in a separate thread."""
-    app.run(host='0.0.0.0', port=port, debug=False, threaded=True, use_reloader=False)
+    app.run(host=host, port=port, debug=False, threaded=True, use_reloader=False)
 
 
 def main():
     parser = argparse.ArgumentParser(description="Vinyl ID - Web-based vinyl record identifier")
-    parser.add_argument("--device", type=int, default=None, help="Audio input device ID")
-    parser.add_argument("--port", type=int, default=5000, help="Web server port (default: 5000)")
-    parser.add_argument("--interval", type=float, default=15.0, help="Identification interval in seconds")
+    parser.add_argument("--config", type=str, default=None, help="Path to config file (default: config.yaml)")
+    parser.add_argument("--device", type=str, default=None, help="Audio input device ID or name")
+    parser.add_argument("--port", type=int, default=None, help="Web server port")
+    parser.add_argument("--interval", type=float, default=None, help="Identification interval in seconds")
     parser.add_argument("--list-devices", action="store_true", help="List audio devices and exit")
+    parser.add_argument("--pi-mode", action="store_true", help="Enable Pi/kiosk mode")
 
     args = parser.parse_args()
 
@@ -248,15 +340,50 @@ def main():
             if device['max_input_channels'] > 0:
                 marker = " (default)" if i == sd.default.device[0] else ""
                 print(f"  [{i}] {device['name']}{marker}")
+        print("\nTip: Use device name in config.yaml, e.g.:")
+        print('  audio_device: "USB Audio"')
         return
+
+    # Load config file
+    config = load_config(args.config)
+
+    # Command line args override config file
+    if args.device is not None:
+        # Try to parse as int, otherwise use as string
+        try:
+            config["audio_device"] = int(args.device)
+        except ValueError:
+            config["audio_device"] = args.device
+    if args.port is not None:
+        config["port"] = args.port
+    if args.interval is not None:
+        config["identification_interval"] = args.interval
+    if args.pi_mode:
+        config["pi_mode"] = True
+        config["fullscreen"] = True
+        config["touch_mode"] = True
+
+    # Resolve audio device name to ID
+    device_id = resolve_audio_device(config["audio_device"])
 
     # Initialize database
     init_db()
 
+    # Set display config for templates
+    set_display_config({
+        "pi_mode": config["pi_mode"],
+        "fullscreen": config["fullscreen"],
+        "touch_mode": config["touch_mode"]
+    })
+
     # Create listener
     listener = WebAudioListener(
-        identification_interval=args.interval,
-        device=args.device
+        identification_interval=config["identification_interval"],
+        sample_duration=config["sample_duration"],
+        device=device_id,
+        audio_gain=config["audio_gain"],
+        silence_threshold=config["silence_threshold"],
+        audio_mode=config["audio_mode"]
     )
 
     # Handle Ctrl+C
@@ -267,10 +394,16 @@ def main():
     signal.signal(signal.SIGINT, signal_handler)
 
     # Start Flask in background thread
-    flask_thread = threading.Thread(target=run_flask, args=(args.port,), daemon=True)
+    flask_thread = threading.Thread(
+        target=run_flask,
+        args=(config["port"], config["host"]),
+        daemon=True
+    )
     flask_thread.start()
 
-    print(f"\n🌐 Web UI: http://localhost:{args.port}")
+    print(f"\nWeb UI: http://localhost:{config['port']}")
+    if config["pi_mode"]:
+        print("Pi mode: enabled")
     print("Press Ctrl+C to stop\n")
 
     # Run async listener

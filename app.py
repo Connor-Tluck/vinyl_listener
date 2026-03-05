@@ -20,6 +20,18 @@ listener_state = {
     "message": "Not running"
 }
 
+# Display configuration for Pi mode
+display_config = {
+    "pi_mode": False,
+    "fullscreen": False,
+    "touch_mode": False
+}
+
+
+def set_display_config(config: dict):
+    """Set display configuration from run.py."""
+    display_config.update(config)
+
 
 def update_listener_state(status=None, current_track=None, audio_level=None, message=None):
     """Update the global listener state."""
@@ -36,13 +48,13 @@ def update_listener_state(status=None, current_track=None, audio_level=None, mes
 @app.route("/")
 def index():
     """Main now playing page."""
-    return render_template("index.html")
+    return render_template("index.html", display=display_config)
 
 
 @app.route("/history")
 def history():
     """History page."""
-    return render_template("history.html")
+    return render_template("history.html", display=display_config)
 
 
 @app.route("/api/status")

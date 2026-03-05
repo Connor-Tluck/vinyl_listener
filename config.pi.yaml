@@ -1,0 +1,48 @@
+# Vinyl ID Configuration - Raspberry Pi Setup
+# Optimized for Pi with touchscreen and USB audio interface
+
+# =============================================================================
+# Audio Settings
+# =============================================================================
+
+# Using line-in from turntable via USB audio interface
+audio_mode: line_in
+
+# USB audio interface - adjust after running: python run.py --list-devices
+# Common names: "USB Audio", "USB Sound", "PCM2902", etc.
+# Set to the device name or ID that matches your USB audio interface
+audio_device: "USB Audio"
+
+# Line-in gain (direct signal usually doesn't need boost)
+audio_gain: 1.0
+
+# Lower silence threshold for clean line-in signal
+silence_threshold: 0.001
+
+# =============================================================================
+# Identification Settings
+# =============================================================================
+
+identification_interval: 15
+sample_duration: 15
+duplicate_window: 10
+
+# =============================================================================
+# Web Server Settings
+# =============================================================================
+
+port: 8080
+host: 0.0.0.0
+
+# =============================================================================
+# Display Settings (Pi Mode)
+# =============================================================================
+
+# Enable Pi optimizations
+pi_mode: true
+
+# Fullscreen mode for kiosk setup
+fullscreen: true
+
+# Larger touch targets for touchscreen
+touch_mode: true
