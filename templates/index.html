@@ -612,15 +612,26 @@
         document.getElementById('historyLink').addEventListener('click', (e) => {
             if (document.fullscreenElement) {
                 e.preventDefault();
-                sessionStorage.setItem('keepFullscreen', 'true');
-                window.location.href = '/history';
+                window.location.href = '/history?fs=1';
             }
         });
 
-        // Re-enter fullscreen if coming from another page
-        if (sessionStorage.getItem('keepFullscreen') === 'true') {
-            sessionStorage.removeItem('keepFullscreen');
-            document.documentElement.requestFullscreen().catch(() => {});
+        // Show fullscreen overlay if URL has fs=1 but not in fullscreen
+        function showFullscreenOverlay() {
+            const overlay = document.createElement('div');
+            overlay.id = 'fsOverlay';
+            overlay.innerHTML = 'Tap to continue in fullscreen';
+            overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.95);color:#fff;display:flex;align-items:center;justify-content:center;font-size:1.2rem;z-index:9999;cursor:pointer;';
+            overlay.addEventListener('click', () => {
+                document.documentElement.requestFullscreen().then(() => {
+                    overlay.remove();
+                }).catch(() => overlay.remove());
+            });
+            document.body.appendChild(overlay);
+        }
+
+        if (window.location.search.includes('fs=1') && !document.fullscreenElement) {
+            showFullscreenOverlay();
         }
 
         loadCurrentTrack();
