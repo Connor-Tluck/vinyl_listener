@@ -23,6 +23,8 @@ class IdentificationResult:
     source: str = "unknown"
     confidence: Optional[float] = None
     cover_url: Optional[str] = None
+    track_number: Optional[int] = None
+    genre: Optional[str] = None
 
 
 class BaseIdentifier(ABC):
@@ -74,9 +76,11 @@ class ShazamIdentifier(BaseIdentifier):
 
                 if result and 'track' in result:
                     track_info = result['track']
-                    # Extract album and year from metadata
+                    # Extract album, year, track number, and genre from metadata
                     album = None
                     year = None
+                    track_number = None
+                    genre = None
                     sections = track_info.get('sections', [])
                     for section in sections:
                         metadata = section.get('metadata', [])
@@ -87,13 +91,24 @@ class ShazamIdentifier(BaseIdentifier):
                                 album = text
                             elif title == 'released':
                                 year = text
+                            elif title == 'track':
+                                try:
+                                    track_number = int(text)
+                                except (ValueError, TypeError):
+                                    pass
+                    # Get genre from genres array
+                    genres = track_info.get('genres', {})
+                    if genres and 'primary' in genres:
+                        genre = genres['primary']
                     return IdentificationResult(
                         track=track_info.get('title', 'Unknown'),
                         artist=track_info.get('subtitle', 'Unknown'),
                         album=album,
                         year=year,
                         source='Shazam',
-                        cover_url=track_info.get('images', {}).get('coverart')
+                        cover_url=track_info.get('images', {}).get('coverart'),
+                        track_number=track_number,
+                        genre=genre
                     )
                 return None
 

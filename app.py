@@ -9,7 +9,8 @@ from flask import Flask, jsonify, render_template, Response, request
 from database import (
     get_recent_listens, get_current_track, get_listen_stats, log_listen,
     search_listens, get_top_tracks, get_top_artists, get_listens_by_date,
-    get_sessions, get_session_listens, toggle_star, get_starred_albums
+    get_sessions, get_session_listens, toggle_star, get_starred_albums,
+    get_genre_stats, check_track_in_history
 )
 
 app = Flask(__name__)
@@ -156,6 +157,24 @@ def api_starred_albums():
     """Get albums with starred tracks."""
     albums = get_starred_albums()
     return jsonify(albums)
+
+
+@app.route("/api/genres")
+def api_genres():
+    """Get listen counts by genre."""
+    genres = get_genre_stats()
+    return jsonify(genres)
+
+
+@app.route("/api/check-history")
+def api_check_history():
+    """Check if a track has been played before."""
+    track = request.args.get('track')
+    artist = request.args.get('artist')
+    if not track or not artist:
+        return jsonify({"error": "track and artist required"}), 400
+    in_history = check_track_in_history(track, artist)
+    return jsonify({"in_history": in_history})
 
 
 @app.route("/api/weather")

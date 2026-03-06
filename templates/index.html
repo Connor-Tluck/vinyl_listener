@@ -382,6 +382,7 @@
         .top-list {
             flex: 1;
             overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
         }
 
         .top-item {
@@ -513,6 +514,7 @@
         .history-table-body {
             flex: 1;
             overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
         }
 
         .history-table tbody {
@@ -586,19 +588,28 @@
 
         /* Scrollbar */
         .history-table-body::-webkit-scrollbar,
-        .top-list::-webkit-scrollbar {
-            width: 4px;
+        .top-list::-webkit-scrollbar,
+        .genre-chart::-webkit-scrollbar {
+            width: 6px;
         }
 
         .history-table-body::-webkit-scrollbar-track,
-        .top-list::-webkit-scrollbar-track {
+        .top-list::-webkit-scrollbar-track,
+        .genre-chart::-webkit-scrollbar-track {
             background: #1a1a1a;
         }
 
         .history-table-body::-webkit-scrollbar-thumb,
-        .top-list::-webkit-scrollbar-thumb {
+        .top-list::-webkit-scrollbar-thumb,
+        .genre-chart::-webkit-scrollbar-thumb {
             background: #333;
-            border-radius: 2px;
+            border-radius: 3px;
+        }
+
+        .history-table-body::-webkit-scrollbar-thumb:hover,
+        .top-list::-webkit-scrollbar-thumb:hover,
+        .genre-chart::-webkit-scrollbar-thumb:hover {
+            background: #444;
         }
 
         .empty-msg {
@@ -606,6 +617,95 @@
             color: #555;
             padding: 30px;
             font-size: 1rem;
+        }
+
+        /* History/New badges */
+        .history-badge, .new-badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: clamp(0.7rem, 2.5vw, 0.9rem);
+            font-weight: 500;
+        }
+
+        .history-badge {
+            background: rgba(251, 191, 36, 0.2);
+            color: #fbbf24;
+        }
+
+        .new-badge {
+            background: rgba(74, 222, 128, 0.2);
+            color: #4ade80;
+        }
+
+        /* Genre chart */
+        .genre-chart-container {
+            background: #1a1a1a;
+            border-radius: 8px;
+            padding: 20px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .genre-chart-container h3 {
+            font-size: 0.85rem;
+            color: #888;
+            margin-bottom: 16px;
+            text-transform: uppercase;
+        }
+
+        .genre-chart {
+            flex: 1;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .genre-bar-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .genre-name {
+            width: 100px;
+            font-size: 0.85rem;
+            color: #ccc;
+            text-align: right;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            flex-shrink: 0;
+        }
+
+        .genre-bar-wrapper {
+            flex: 1;
+            height: 24px;
+            background: #222;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .genre-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #4ade80, #22d3ee);
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+
+        .genre-count {
+            width: 40px;
+            font-size: 0.85rem;
+            color: #4ade80;
+            text-align: left;
+        }
+
+        /* Track number column */
+        .track-num {
+            color: #666;
+            font-size: 0.8rem;
         }
 
         /* ===== IDLE SCREEN ===== */
@@ -841,6 +941,8 @@
                 <div class="track-details">
                     <span>💿 <span id="trackAlbum">Unknown Album</span></span>
                     <span>📅 <span id="trackYear">----</span></span>
+                    <span class="history-badge hidden" id="historyBadge">🔄 Played Before</span>
+                    <span class="new-badge hidden" id="newBadge">✨ First Play</span>
                 </div>
             </div>
         </div>
@@ -851,6 +953,7 @@
         <div class="history-tabs">
             <button class="history-tab active" id="dashboardTab">Dashboard</button>
             <button class="history-tab" id="tracksTab">All Tracks</button>
+            <button class="history-tab" id="genresTab">Genres</button>
         </div>
 
         <!-- Dashboard Panel -->
@@ -867,6 +970,10 @@
                 <div class="stat-box">
                     <div class="stat-value" id="uniqueArtists">0</div>
                     <div class="stat-label">Artists</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value" id="uniqueDays">0</div>
+                    <div class="stat-label">Sessions</div>
                 </div>
             </div>
             <div class="top-lists">
@@ -892,8 +999,9 @@
                     <thead>
                         <tr>
                             <th style="width: 30px;">★</th>
+                            <th style="width: 30px;">#</th>
                             <th>Track</th>
-                            <th style="width: 70px;">When</th>
+                            <th style="width: 80px;">When</th>
                         </tr>
                     </thead>
                 </table>
@@ -902,6 +1010,14 @@
                         <tbody id="historyTable"></tbody>
                     </table>
                 </div>
+            </div>
+        </div>
+
+        <!-- Genres Panel -->
+        <div class="history-panel" id="genresPanel">
+            <div class="genre-chart-container">
+                <h3>Listens by Genre</h3>
+                <div id="genreChart" class="genre-chart"></div>
             </div>
         </div>
     </div>
@@ -957,8 +1073,14 @@
         // History tabs
         const dashboardTab = document.getElementById('dashboardTab');
         const tracksTab = document.getElementById('tracksTab');
+        const genresTab = document.getElementById('genresTab');
         const dashboardPanel = document.getElementById('dashboardPanel');
         const tracksPanel = document.getElementById('tracksPanel');
+        const genresPanel = document.getElementById('genresPanel');
+
+        // History/new badges
+        const historyBadge = document.getElementById('historyBadge');
+        const newBadge = document.getElementById('newBadge');
 
         let currentView = 'playing';
         let currentHistoryTab = 'dashboard';
@@ -1136,11 +1258,15 @@
             currentHistoryTab = tab;
             dashboardTab.classList.toggle('active', tab === 'dashboard');
             tracksTab.classList.toggle('active', tab === 'tracks');
+            genresTab.classList.toggle('active', tab === 'genres');
             dashboardPanel.classList.toggle('active', tab === 'dashboard');
             tracksPanel.classList.toggle('active', tab === 'tracks');
+            genresPanel.classList.toggle('active', tab === 'genres');
 
             if (tab === 'tracks') {
                 loadHistory();
+            } else if (tab === 'genres') {
+                loadGenreChart();
             }
         }
 
@@ -1149,6 +1275,7 @@
         historyBtn.addEventListener('click', () => switchView('history'));
         dashboardTab.addEventListener('click', () => switchHistoryTab('dashboard'));
         tracksTab.addEventListener('click', () => switchHistoryTab('tracks'));
+        genresTab.addEventListener('click', () => switchHistoryTab('genres'));
 
         // Fullscreen
         function updateFullscreenButton() {
@@ -1179,7 +1306,7 @@
         }
 
         // Track display
-        function updateCurrentTrack(track) {
+        async function updateCurrentTrack(track) {
             if (!track || !track.track) {
                 if (!hasTrack) {
                     idleState.classList.remove('hidden');
@@ -1199,6 +1326,22 @@
 
             currentTrackStarred = track.starred;
             updateStarButton();
+
+            // Check if track is in history (played before)
+            try {
+                const res = await fetch(`/api/check-history?track=${encodeURIComponent(track.track)}&artist=${encodeURIComponent(track.artist)}`);
+                const data = await res.json();
+                if (data.in_history) {
+                    historyBadge.classList.remove('hidden');
+                    newBadge.classList.add('hidden');
+                } else {
+                    historyBadge.classList.add('hidden');
+                    newBadge.classList.remove('hidden');
+                }
+            } catch (e) {
+                historyBadge.classList.add('hidden');
+                newBadge.classList.add('hidden');
+            }
 
             if (track.cover_url) {
                 albumArt.innerHTML = `<img src="${track.cover_url}" alt="Album Art" crossorigin="anonymous" id="albumImage">`;
@@ -1316,6 +1459,7 @@
                 document.getElementById('totalPlays').textContent = stats.total_listens || 0;
                 document.getElementById('uniqueTracks').textContent = stats.unique_tracks || 0;
                 document.getElementById('uniqueArtists').textContent = stats.unique_artists || 0;
+                document.getElementById('uniqueDays').textContent = stats.unique_days || 0;
             } catch (e) {}
 
             // Load top tracks
@@ -1369,10 +1513,52 @@
         function formatDate(dateStr) {
             const date = new Date(dateStr);
             const now = new Date();
-            const diff = now - date;
-            if (diff < 3600000) return `${Math.floor(diff / 60000)}m`;
-            if (diff < 86400000) return `${Math.floor(diff / 3600000)}h`;
+
+            // Check if same day (today)
+            const isToday = date.toDateString() === now.toDateString();
+            if (isToday) {
+                return 'Today';
+            }
+
+            // Check if yesterday
+            const yesterday = new Date(now);
+            yesterday.setDate(yesterday.getDate() - 1);
+            if (date.toDateString() === yesterday.toDateString()) {
+                return 'Yesterday';
+            }
+
+            // Otherwise show date
             return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        }
+
+        // Genre chart
+        async function loadGenreChart() {
+            try {
+                const res = await fetch('/api/genres');
+                const genres = await res.json();
+                const container = document.getElementById('genreChart');
+
+                if (!genres.length) {
+                    container.innerHTML = '<div class="empty-msg">No genre data yet</div>';
+                    return;
+                }
+
+                const maxCount = Math.max(...genres.map(g => g.count));
+                container.innerHTML = genres.map(g => {
+                    const width = (g.count / maxCount) * 100;
+                    return `
+                        <div class="genre-bar-item">
+                            <span class="genre-name">${g.genre}</span>
+                            <div class="genre-bar-wrapper">
+                                <div class="genre-bar" style="width: ${width}%"></div>
+                            </div>
+                            <span class="genre-count">${g.count}</span>
+                        </div>
+                    `;
+                }).join('');
+            } catch (e) {
+                console.error('Failed to load genres:', e);
+            }
         }
 
         async function loadHistory() {
@@ -1392,13 +1578,14 @@
             const tbody = document.getElementById('historyTable');
 
             if (!allListens.length) {
-                tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:#555;padding:20px;">No listens found</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:#555;padding:20px;">No listens found</td></tr>';
                 return;
             }
 
             tbody.innerHTML = allListens.map(l => `
                 <tr>
                     <td><span class="history-star ${l.starred ? 'starred' : ''}" data-id="${l.id}">${l.starred ? '★' : '☆'}</span></td>
+                    <td class="track-num">${l.track_number || '-'}</td>
                     <td>
                         <div class="history-track-cell">
                             ${l.cover_url ? `<img src="${l.cover_url}" class="history-cover">` : '<div class="history-cover"></div>'}

@@ -30,6 +30,8 @@ def init_db():
             cover_url TEXT,
             session_id INTEGER,
             starred INTEGER DEFAULT 0,
+            track_number INTEGER,
+            genre TEXT,
             listened_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """)
@@ -54,6 +56,14 @@ def init_db():
         conn.execute("ALTER TABLE listens ADD COLUMN starred INTEGER DEFAULT 0")
     except:
         pass
+    try:
+        conn.execute("ALTER TABLE listens ADD COLUMN track_number INTEGER")
+    except:
+        pass
+    try:
+        conn.execute("ALTER TABLE listens ADD COLUMN genre TEXT")
+    except:
+        pass
     conn.commit()
     conn.close()
 
@@ -65,7 +75,9 @@ def log_listen(
     year: Optional[str] = None,
     source: Optional[str] = None,
     confidence: Optional[float] = None,
-    cover_url: Optional[str] = None
+    cover_url: Optional[str] = None,
+    track_number: Optional[int] = None,
+    genre: Optional[str] = None
 ) -> Optional[int]:
     """Log a listen to the database. Returns the listen ID, or None if duplicate."""
     conn = get_connection()
@@ -89,10 +101,10 @@ def log_listen(
     session_id = get_current_session_id()
     cursor = conn.execute(
         """
-        INSERT INTO listens (track, artist, album, year, source, confidence, cover_url, session_id)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO listens (track, artist, album, year, source, confidence, cover_url, session_id, track_number, genre)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
-        (track, artist, album, year, source, confidence, cover_url, session_id)
+        (track, artist, album, year, source, confidence, cover_url, session_id, track_number, genre)
     )
     listen_id = cursor.lastrowid
     conn.commit()
@@ -104,7 +116,7 @@ def get_recent_listens(limit: int = 50, starred_only: bool = False) -> list[dict
     """Get recent listens from the database."""
     conn = get_connection()
     sql = """
-        SELECT id, track, artist, album, year, source, confidence, cover_url, starred, listened_at
+        SELECT id, track, artist, album, year, source, confidence, cover_url, starred, track_number, genre, listened_at
         FROM listens
     """
     if starred_only:
@@ -122,7 +134,7 @@ def get_current_track() -> Optional[dict]:
     conn = get_connection()
     cursor = conn.execute(
         """
-        SELECT id, track, artist, album, year, source, confidence, cover_url, starred, listened_at
+        SELECT id, track, artist, album, year, source, confidence, cover_url, starred, track_number, genre, listened_at
         FROM listens
         ORDER BY listened_at DESC
         LIMIT 1
@@ -144,7 +156,7 @@ def search_listens(
     conn = get_connection()
 
     sql = """
-        SELECT id, track, artist, album, year, source, confidence, cover_url, starred, listened_at
+        SELECT id, track, artist, album, year, source, confidence, cover_url, starred, track_number, genre, listened_at
         FROM listens
         WHERE 1=1
     """
@@ -234,6 +246,7 @@ def get_listen_stats() -> dict:
     total = conn.execute("SELECT COUNT(*) FROM listens").fetchone()[0]
     unique_tracks = conn.execute("SELECT COUNT(DISTINCT track || artist) FROM listens").fetchone()[0]
     unique_artists = conn.execute("SELECT COUNT(DISTINCT artist) FROM listens").fetchone()[0]
+    unique_days = conn.execute("SELECT COUNT(DISTINCT date(listened_at)) FROM listens").fetchone()[0]
 
     top_artists = conn.execute(
         """
@@ -251,8 +264,41 @@ def get_listen_stats() -> dict:
         "total_listens": total,
         "unique_tracks": unique_tracks,
         "unique_artists": unique_artists,
+        "unique_days": unique_days,
         "top_artists": [{"artist": row[0], "count": row[1]} for row in top_artists]
     }
+
+
+def get_genre_stats() -> list[dict]:
+    """Get listen counts by genre."""
+    conn = get_connection()
+    cursor = conn.execute(
+        """
+        SELECT genre, COUNT(*) as count
+        FROM listens
+        WHERE genre IS NOT NULL AND genre != ''
+        GROUP BY genre
+        ORDER BY count DESC
+        """
+    )
+    rows = cursor.fetchall()
+    conn.close()
+    return [dict(row) for row in rows]
+
+
+def check_track_in_history(track: str, artist: str) -> bool:
+    """Check if a track has been played before (excluding most recent)."""
+    conn = get_connection()
+    cursor = conn.execute(
+        """
+        SELECT COUNT(*) FROM listens
+        WHERE track = ? AND artist = ?
+        """,
+        (track, artist)
+    )
+    count = cursor.fetchone()[0]
+    conn.close()
+    return count > 1
 
 
 # Session management

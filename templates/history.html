@@ -400,6 +400,7 @@
         .table-body {
             flex: 1;
             overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
         }
 
         td {
@@ -490,6 +491,9 @@
             background: #1a1a1a;
             border-radius: 8px;
             padding: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
         }
 
         .top-item {
@@ -550,20 +554,24 @@
         }
 
         /* Scrollbar styling */
-        .table-body::-webkit-scrollbar {
+        .table-body::-webkit-scrollbar,
+        .top-card::-webkit-scrollbar {
             width: 6px;
         }
 
-        .table-body::-webkit-scrollbar-track {
+        .table-body::-webkit-scrollbar-track,
+        .top-card::-webkit-scrollbar-track {
             background: #1a1a1a;
         }
 
-        .table-body::-webkit-scrollbar-thumb {
+        .table-body::-webkit-scrollbar-thumb,
+        .top-card::-webkit-scrollbar-thumb {
             background: #333;
             border-radius: 3px;
         }
 
-        .table-body::-webkit-scrollbar-thumb:hover {
+        .table-body::-webkit-scrollbar-thumb:hover,
+        .top-card::-webkit-scrollbar-thumb:hover {
             background: #444;
         }
 
@@ -722,10 +730,23 @@
         function formatDate(dateStr) {
             const date = new Date(dateStr);
             const now = new Date();
-            const diff = now - date;
-            if (diff < 3600000) return `${Math.floor(diff / 60000)}m ago`;
-            if (diff < 86400000) return `${Math.floor(diff / 3600000)}h ago`;
-            return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+
+            // Check if same day (today)
+            const isToday = date.toDateString() === now.toDateString();
+            if (isToday) {
+                // Show time for today
+                return 'Today ' + date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+            }
+
+            // Check if yesterday
+            const yesterday = new Date(now);
+            yesterday.setDate(yesterday.getDate() - 1);
+            if (date.toDateString() === yesterday.toDateString()) {
+                return 'Yesterday';
+            }
+
+            // Otherwise show date
+            return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
         }
 
         function getPlayCounts(listens) {

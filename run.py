@@ -262,7 +262,9 @@ class WebAudioListener:
                         year=result.year,
                         source=result.source,
                         confidence=result.confidence,
-                        cover_url=result.cover_url
+                        cover_url=result.cover_url,
+                        track_number=result.track_number,
+                        genre=result.genre
                     )
 
                     if listen_id:
