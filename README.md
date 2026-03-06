@@ -14,6 +14,7 @@ A real-time vinyl record identifier that listens to your turntable and automatic
 - **Top charts** - See your most played tracks and artists
 - **Search & filter** - Search your history by track, artist, or album; filter by starred tracks
 - **Duplicate prevention** - Won't log the same track twice within 10 minutes
+- **Idle screen** - Shows clock, weather, and top artists when no music is playing
 - **Touch-friendly** - Designed for Raspberry Pi with touchscreen
 - **Config file system** - Easy setup for different environments (desktop, Pi line-in, Pi microphone)
 
@@ -285,6 +286,11 @@ host: 0.0.0.0
 pi_mode: false    # Enable Pi optimizations
 fullscreen: false # Hide cursor, kiosk mode
 touch_mode: false # Larger touch targets
+
+# Idle Screen Settings
+idle_screen_enabled: true       # Show idle screen when no audio
+idle_timeout_minutes: 5         # Minutes of silence before idle screen
+idle_weather_location: "NYC"    # City for weather display
 ```
 
 ### Line-in vs Microphone

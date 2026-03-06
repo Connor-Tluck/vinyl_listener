@@ -282,25 +282,25 @@
         /* ===== HISTORY VIEW ===== */
         #historyView {
             flex-direction: column;
-            padding: 32px 6px 28px;
+            padding: 40px 16px 36px;
             background: #121212;
         }
 
         /* Sub-tabs for history */
         .history-tabs {
             display: flex;
-            gap: 4px;
-            margin-bottom: 6px;
+            gap: 8px;
+            margin-bottom: 12px;
             flex-shrink: 0;
         }
 
         .history-tab {
-            padding: 4px 12px;
+            padding: 8px 20px;
             background: #1a1a1a;
             border: 1px solid #2a2a2a;
-            border-radius: 4px;
+            border-radius: 6px;
             color: #888;
-            font-size: 0.65rem;
+            font-size: 0.9rem;
             cursor: pointer;
         }
 
@@ -325,35 +325,36 @@
         /* Stats row */
         .stats-row {
             display: flex;
-            gap: 8px;
-            margin-bottom: 8px;
+            gap: 12px;
+            margin-bottom: 16px;
             flex-shrink: 0;
         }
 
         .stat-box {
             flex: 1;
             background: #1a1a1a;
-            border-radius: 4px;
-            padding: 8px;
+            border-radius: 8px;
+            padding: 16px;
             text-align: center;
         }
 
         .stat-value {
-            font-size: 1.1rem;
+            font-size: 1.8rem;
             font-weight: 600;
             color: #4ade80;
         }
 
         .stat-label {
-            font-size: 0.5rem;
+            font-size: 0.75rem;
             color: #666;
             text-transform: uppercase;
+            margin-top: 4px;
         }
 
         /* Top lists side by side */
         .top-lists {
             display: flex;
-            gap: 8px;
+            gap: 16px;
             flex: 1;
             min-height: 0;
             overflow: hidden;
@@ -362,8 +363,8 @@
         .top-card {
             flex: 1;
             background: #1a1a1a;
-            border-radius: 4px;
-            padding: 6px;
+            border-radius: 8px;
+            padding: 12px;
             display: flex;
             flex-direction: column;
             min-height: 0;
@@ -371,9 +372,9 @@
         }
 
         .top-card h3 {
-            font-size: 0.6rem;
+            font-size: 0.85rem;
             color: #888;
-            margin-bottom: 6px;
+            margin-bottom: 12px;
             text-transform: uppercase;
             flex-shrink: 0;
         }
@@ -386,9 +387,9 @@
         .top-item {
             display: flex;
             align-items: center;
-            padding: 4px 0;
+            padding: 8px 0;
             border-bottom: 1px solid #222;
-            gap: 6px;
+            gap: 10px;
         }
 
         .top-item:last-child {
@@ -396,8 +397,8 @@
         }
 
         .top-rank {
-            width: 14px;
-            font-size: 0.6rem;
+            width: 20px;
+            font-size: 0.9rem;
             color: #555;
             font-weight: 600;
             text-align: center;
@@ -406,9 +407,9 @@
         .top-rank.gold { color: #fbbf24; }
 
         .top-cover {
-            width: 24px;
-            height: 24px;
-            border-radius: 3px;
+            width: 40px;
+            height: 40px;
+            border-radius: 4px;
             background: #333;
             object-fit: cover;
             flex-shrink: 0;
@@ -420,7 +421,7 @@
         }
 
         .top-name {
-            font-size: 0.55rem;
+            font-size: 0.9rem;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -428,12 +429,13 @@
         }
 
         .top-sub {
-            font-size: 0.45rem;
+            font-size: 0.75rem;
             color: #666;
+            margin-top: 2px;
         }
 
         .top-count {
-            font-size: 0.55rem;
+            font-size: 0.9rem;
             color: #4ade80;
             font-weight: 500;
         }
@@ -441,19 +443,19 @@
         /* Tracks panel */
         .history-filters {
             display: flex;
-            gap: 4px;
-            margin-bottom: 4px;
+            gap: 10px;
+            margin-bottom: 12px;
             flex-shrink: 0;
         }
 
         .search-input {
             flex: 1;
-            padding: 4px 8px;
+            padding: 10px 14px;
             background: #1a1a1a;
             border: 1px solid #2a2a2a;
-            border-radius: 4px;
+            border-radius: 6px;
             color: #fff;
-            font-size: 0.65rem;
+            font-size: 1rem;
         }
 
         .search-input::placeholder {
@@ -461,12 +463,12 @@
         }
 
         .filter-btn {
-            padding: 4px 8px;
+            padding: 10px 16px;
             background: #1a1a1a;
             border: 1px solid #2a2a2a;
-            border-radius: 4px;
+            border-radius: 6px;
             color: #888;
-            font-size: 0.65rem;
+            font-size: 0.9rem;
             cursor: pointer;
         }
 
@@ -479,7 +481,7 @@
         .history-table-container {
             flex: 1;
             background: #1a1a1a;
-            border-radius: 4px;
+            border-radius: 8px;
             overflow: hidden;
             display: flex;
             flex-direction: column;
@@ -499,8 +501,8 @@
 
         .history-table th {
             text-align: left;
-            padding: 4px 6px;
-            font-size: 0.5rem;
+            padding: 12px 14px;
+            font-size: 0.75rem;
             font-weight: 500;
             color: #666;
             text-transform: uppercase;
@@ -520,9 +522,9 @@
         }
 
         .history-table td {
-            padding: 4px 6px;
+            padding: 12px 14px;
             border-bottom: 1px solid #222;
-            font-size: 0.6rem;
+            font-size: 0.95rem;
             color: #ccc;
         }
 
@@ -533,13 +535,13 @@
         .history-track-cell {
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 12px;
         }
 
         .history-cover {
-            width: 24px;
-            height: 24px;
-            border-radius: 2px;
+            width: 44px;
+            height: 44px;
+            border-radius: 4px;
             background: #333;
             object-fit: cover;
             flex-shrink: 0;
@@ -552,20 +554,21 @@
 
         .history-track-name {
             font-weight: 500;
-            font-size: 0.6rem;
+            font-size: 1rem;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
         }
 
         .history-track-artist {
-            font-size: 0.5rem;
+            font-size: 0.85rem;
             color: #888;
+            margin-top: 2px;
         }
 
         .history-star {
             cursor: pointer;
-            font-size: 0.7rem;
+            font-size: 1.2rem;
             color: #444;
         }
 
@@ -601,8 +604,188 @@
         .empty-msg {
             text-align: center;
             color: #555;
-            padding: 20px;
+            padding: 30px;
+            font-size: 1rem;
+        }
+
+        /* ===== IDLE SCREEN ===== */
+        #idleView {
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #0a0a15 0%, #1a1a2e 50%, #0a0a15 100%);
+            background-size: 400% 400%;
+            animation: gradientShift 8s ease infinite;
+            position: relative;
+            overflow: hidden;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            25% { background-position: 100% 50%; }
+            50% { background-position: 100% 100%; }
+            75% { background-position: 0% 100%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .idle-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            z-index: 1;
+        }
+
+        .idle-day {
+            font-size: clamp(1rem, 4vw, 1.5rem);
+            font-weight: 300;
+            letter-spacing: 0.2em;
+            color: rgba(255, 255, 255, 0.5);
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+        }
+
+        .idle-clock {
+            font-size: clamp(4rem, 18vw, 8rem);
+            font-weight: 200;
+            letter-spacing: 0.05em;
+            color: rgba(255, 255, 255, 0.9);
+            text-shadow: 0 0 40px rgba(255, 255, 255, 0.3);
+            margin-bottom: 0.5rem;
+        }
+
+        .idle-weather {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: clamp(1.2rem, 5vw, 2rem);
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 1.5rem;
+        }
+
+        .idle-weather-icon {
+            font-size: clamp(1.5rem, 6vw, 2.5rem);
+        }
+
+        .idle-weather-temp {
+            font-weight: 300;
+        }
+
+        .idle-weather-condition {
+            font-size: clamp(0.8rem, 3vw, 1.2rem);
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        .idle-prompt {
+            font-size: clamp(1.2rem, 4vw, 1.8rem);
+            color: rgba(255, 255, 255, 0.4);
+            font-weight: 300;
+            letter-spacing: 0.1em;
+            margin-bottom: 2rem;
+            animation: fadeInOut 4s ease-in-out infinite;
+        }
+
+        @keyframes fadeInOut {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.7; }
+        }
+
+        .idle-top-artists {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .idle-artist {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .idle-artist-rank {
             font-size: 0.7rem;
+            color: rgba(255, 255, 255, 0.3);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .idle-artist-name {
+            font-size: clamp(0.8rem, 3vw, 1.1rem);
+            color: rgba(255, 255, 255, 0.6);
+            font-weight: 400;
+            max-width: 100px;
+            text-align: center;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .idle-particles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            overflow: hidden;
+            pointer-events: none;
+        }
+
+        .idle-particle {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            background: radial-gradient(circle, rgba(74, 222, 128, 0.4) 0%, transparent 70%);
+            border-radius: 50%;
+            animation: floatUp 12s infinite linear;
+        }
+
+        .idle-particle:nth-child(odd) {
+            background: radial-gradient(circle, rgba(34, 211, 238, 0.4) 0%, transparent 70%);
+        }
+
+        @keyframes floatUp {
+            0% {
+                transform: translateY(100vh) translateX(0) scale(0.5);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+                transform: translateY(80vh) translateX(10px) scale(1);
+            }
+            50% {
+                transform: translateY(40vh) translateX(-20px) scale(1.2);
+            }
+            90% {
+                opacity: 1;
+                transform: translateY(10vh) translateX(30px) scale(0.8);
+            }
+            100% {
+                transform: translateY(-10vh) translateX(0) scale(0.5);
+                opacity: 0;
+            }
+        }
+
+        .idle-glow {
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(74, 222, 128, 0.15) 0%, transparent 70%);
+            animation: pulseGlow 6s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        .idle-glow:nth-child(2) {
+            background: radial-gradient(circle, rgba(34, 211, 238, 0.1) 0%, transparent 70%);
+            animation-delay: -3s;
+            width: 400px;
+            height: 400px;
+        }
+
+        @keyframes pulseGlow {
+            0%, 100% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.3); opacity: 0.8; }
         }
     </style>
 </head>
@@ -613,11 +796,30 @@
     <nav>
         <div class="logo">VINYL ID</div>
         <div class="nav-links">
+            <button class="nav-btn" id="idleBtn">Idle</button>
             <button class="nav-btn active" id="playingBtn">Playing</button>
             <button class="nav-btn" id="historyBtn">History</button>
             <button class="nav-btn" id="fullscreenBtn">Fullscreen</button>
         </div>
     </nav>
+
+    <!-- Idle Screen View -->
+    <div class="view" id="idleView">
+        <div class="idle-glow"></div>
+        <div class="idle-glow"></div>
+        <div class="idle-particles" id="idleParticles"></div>
+        <div class="idle-content">
+            <div class="idle-day" id="idleDay">---</div>
+            <div class="idle-clock" id="idleClock">--:--</div>
+            <div class="idle-weather">
+                <span class="idle-weather-icon" id="idleWeatherIcon"></span>
+                <span class="idle-weather-temp" id="idleWeatherTemp">--°F</span>
+                <span class="idle-weather-condition" id="idleWeatherCondition"></span>
+            </div>
+            <div class="idle-prompt">toss on a vinyl</div>
+            <div class="idle-top-artists" id="idleTopArtists"></div>
+        </div>
+    </div>
 
     <!-- Now Playing View -->
     <div class="view active" id="playingView">
@@ -723,8 +925,10 @@
 
     <script>
         // Elements
+        const idleView = document.getElementById('idleView');
         const playingView = document.getElementById('playingView');
         const historyView = document.getElementById('historyView');
+        const idleBtn = document.getElementById('idleBtn');
         const playingBtn = document.getElementById('playingBtn');
         const historyBtn = document.getElementById('historyBtn');
         const fullscreenBtn = document.getElementById('fullscreenBtn');
@@ -741,6 +945,15 @@
         const audioBars = document.querySelectorAll('.audio-bar');
         const starBtn = document.getElementById('starBtn');
 
+        // Idle screen elements
+        const idleDay = document.getElementById('idleDay');
+        const idleClock = document.getElementById('idleClock');
+        const idleWeatherIcon = document.getElementById('idleWeatherIcon');
+        const idleWeatherTemp = document.getElementById('idleWeatherTemp');
+        const idleWeatherCondition = document.getElementById('idleWeatherCondition');
+        const idleParticles = document.getElementById('idleParticles');
+        const idleTopArtists = document.getElementById('idleTopArtists');
+
         // History tabs
         const dashboardTab = document.getElementById('dashboardTab');
         const tracksTab = document.getElementById('tracksTab');
@@ -754,20 +967,141 @@
         let currentTrackStarred = false;
         let allListens = [];
         let showStarredOnly = false;
+        let isIdle = false;
+        let idleClockInterval = null;
+        let weatherCache = null;
+        let weatherFetchedAt = 0;
 
         // View switching
         function switchView(view) {
             currentView = view;
+            idleView.classList.toggle('active', view === 'idle');
             playingView.classList.toggle('active', view === 'playing');
             historyView.classList.toggle('active', view === 'history');
+            idleBtn.classList.toggle('active', view === 'idle');
             playingBtn.classList.toggle('active', view === 'playing');
             historyBtn.classList.toggle('active', view === 'history');
 
             if (view === 'history') {
                 document.body.style.background = '#121212';
                 loadDashboard();
+                stopIdleScreen();
+            } else if (view === 'idle') {
+                document.body.style.background = '';
+                startIdleScreen();
             } else {
                 document.body.style.background = '';
+                stopIdleScreen();
+            }
+        }
+
+        // Idle screen functions
+        function startIdleScreen() {
+            if (idleClockInterval) return;
+            updateIdleClock();
+            idleClockInterval = setInterval(updateIdleClock, 1000);
+            fetchWeather();
+            fetchTopArtistsForIdle();
+            createParticles();
+        }
+
+        function stopIdleScreen() {
+            if (idleClockInterval) {
+                clearInterval(idleClockInterval);
+                idleClockInterval = null;
+            }
+        }
+
+        function updateIdleClock() {
+            const now = new Date();
+            const hours = now.getHours();
+            const minutes = now.getMinutes().toString().padStart(2, '0');
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            const displayHours = hours % 12 || 12;
+            idleClock.textContent = `${displayHours}:${minutes} ${ampm}`;
+
+            const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            idleDay.textContent = days[now.getDay()];
+        }
+
+        async function fetchWeather() {
+            const now = Date.now();
+            // Use cache if less than 15 minutes old
+            if (weatherCache && (now - weatherFetchedAt) < 900000) {
+                displayWeather(weatherCache);
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/weather');
+                const data = await res.json();
+                if (!data.error) {
+                    weatherCache = data;
+                    weatherFetchedAt = now;
+                    displayWeather(data);
+                }
+            } catch (e) {
+                console.error('Weather fetch error:', e);
+            }
+        }
+
+        function displayWeather(data) {
+            idleWeatherTemp.textContent = `${data.temp_f}°F`;
+            idleWeatherCondition.textContent = data.condition;
+            idleWeatherIcon.textContent = getWeatherEmoji(data.condition);
+        }
+
+        function getWeatherEmoji(condition) {
+            const c = (condition || '').toLowerCase();
+            if (c.includes('sunny') || c.includes('clear')) return '☀️';
+            if (c.includes('cloud') || c.includes('overcast')) return '☁️';
+            if (c.includes('rain') || c.includes('drizzle')) return '🌧️';
+            if (c.includes('snow')) return '❄️';
+            if (c.includes('thunder') || c.includes('storm')) return '⛈️';
+            if (c.includes('fog') || c.includes('mist')) return '🌫️';
+            if (c.includes('partly')) return '⛅';
+            return '🌤️';
+        }
+
+        function createParticles() {
+            idleParticles.innerHTML = '';
+            for (let i = 0; i < 25; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'idle-particle';
+                particle.style.left = `${Math.random() * 100}%`;
+                particle.style.animationDelay = `${Math.random() * 12}s`;
+                particle.style.animationDuration = `${8 + Math.random() * 8}s`;
+                idleParticles.appendChild(particle);
+            }
+        }
+
+        async function fetchTopArtistsForIdle() {
+            try {
+                const res = await fetch('/api/top-artists?limit=3');
+                const artists = await res.json();
+                if (artists && artists.length > 0) {
+                    const rankLabels = ['#1', '#2', '#3'];
+                    idleTopArtists.innerHTML = artists.map((a, i) => `
+                        <div class="idle-artist">
+                            <span class="idle-artist-rank">${rankLabels[i]}</span>
+                            <span class="idle-artist-name">${a.artist}</span>
+                        </div>
+                    `).join('');
+                } else {
+                    idleTopArtists.innerHTML = '';
+                }
+            } catch (e) {
+                idleTopArtists.innerHTML = '';
+            }
+        }
+
+        function handleIdleState(idle) {
+            if (idle && !isIdle && currentView === 'playing') {
+                isIdle = true;
+                switchView('idle');
+            } else if (!idle && isIdle) {
+                isIdle = false;
+                switchView('playing');
             }
         }
 
@@ -784,6 +1118,7 @@
             }
         }
 
+        idleBtn.addEventListener('click', () => switchView('idle'));
         playingBtn.addEventListener('click', () => switchView('playing'));
         historyBtn.addEventListener('click', () => switchView('history'));
         dashboardTab.addEventListener('click', () => switchHistoryTab('dashboard'));
@@ -923,6 +1258,11 @@
                 statusText.textContent = data.message || data.status;
 
                 updateAudioLevel(data.audio_level || 0);
+
+                // Handle idle state
+                if (data.idle_config && data.idle_config.enabled) {
+                    handleIdleState(data.idle);
+                }
 
                 if (data.new_track && data.new_track.id !== lastTrackId) {
                     lastTrackId = data.new_track.id;

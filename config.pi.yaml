@@ -46,3 +46,16 @@ fullscreen: true
 
 # Larger touch targets for touchscreen
 touch_mode: true
+
+# =============================================================================
+# Idle Screen Settings
+# =============================================================================
+
+# Enable idle screen (shows clock/weather when no audio for a while)
+idle_screen_enabled: true
+
+# Minutes of silence before showing idle screen
+idle_timeout_minutes: 5
+
+# City for weather display (e.g., "NYC", "Los Angeles", "London")
+idle_weather_location: "NYC"

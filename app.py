@@ -2,6 +2,8 @@
 
 import json
 import time
+import urllib.request
+import urllib.error
 from flask import Flask, jsonify, render_template, Response, request
 
 from database import (
@@ -17,8 +19,16 @@ listener_state = {
     "status": "stopped",
     "current_track": None,
     "audio_level": 0.0,
-    "message": "Not running"
+    "message": "Not running",
+    "idle": False
 }
+
+# Weather cache
+weather_cache = {
+    "data": None,
+    "fetched_at": 0
+}
+WEATHER_CACHE_DURATION = 900  # 15 minutes
 
 # Display configuration for Pi mode
 display_config = {
@@ -33,7 +43,7 @@ def set_display_config(config: dict):
     display_config.update(config)
 
 
-def update_listener_state(status=None, current_track=None, audio_level=None, message=None):
+def update_listener_state(status=None, current_track=None, audio_level=None, message=None, idle=None):
     """Update the global listener state."""
     if status is not None:
         listener_state["status"] = status
@@ -43,6 +53,8 @@ def update_listener_state(status=None, current_track=None, audio_level=None, mes
         listener_state["audio_level"] = audio_level
     if message is not None:
         listener_state["message"] = message
+    if idle is not None:
+        listener_state["idle"] = idle
 
 
 @app.route("/")
@@ -146,6 +158,40 @@ def api_starred_albums():
     return jsonify(albums)
 
 
+@app.route("/api/weather")
+def api_weather():
+    """Get weather data for idle screen."""
+    location = display_config.get("idle_weather_location", "NYC")
+
+    # Check cache
+    now = time.time()
+    if weather_cache["data"] and (now - weather_cache["fetched_at"]) < WEATHER_CACHE_DURATION:
+        return jsonify(weather_cache["data"])
+
+    try:
+        url = f"https://wttr.in/{location}?format=j1"
+        req = urllib.request.Request(url, headers={"User-Agent": "vinyl-id"})
+        with urllib.request.urlopen(req, timeout=10) as response:
+            data = json.loads(response.read().decode())
+
+        current = data.get("current_condition", [{}])[0]
+        weather_data = {
+            "temp_f": current.get("temp_F", ""),
+            "temp_c": current.get("temp_C", ""),
+            "condition": current.get("weatherDesc", [{}])[0].get("value", ""),
+            "icon": current.get("weatherCode", ""),
+            "location": location
+        }
+
+        # Update cache
+        weather_cache["data"] = weather_data
+        weather_cache["fetched_at"] = now
+
+        return jsonify(weather_data)
+    except (urllib.error.URLError, json.JSONDecodeError, KeyError) as e:
+        return jsonify({"error": str(e)}), 500
+
+
 @app.route("/api/events")
 def api_events():
     """Server-sent events for real-time updates."""
@@ -157,7 +203,13 @@ def api_events():
                     "status": listener_state["status"],
                     "audio_level": listener_state["audio_level"],
                     "message": listener_state["message"],
-                    "current_track": listener_state["current_track"]
+                    "current_track": listener_state["current_track"],
+                    "idle": listener_state["idle"],
+                    "idle_config": {
+                        "enabled": display_config.get("idle_screen_enabled", False),
+                        "timeout_minutes": display_config.get("idle_timeout_minutes", 10),
+                        "location": display_config.get("idle_weather_location", "NYC")
+                    }
                 }
 
                 current = get_current_track()

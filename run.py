@@ -47,6 +47,11 @@ DEFAULT_CONFIG = {
     "pi_mode": False,
     "fullscreen": False,
     "touch_mode": False,
+
+    # Idle screen settings
+    "idle_screen_enabled": True,
+    "idle_timeout_minutes": 5,
+    "idle_weather_location": "NYC",
 }
 
 
@@ -113,7 +118,9 @@ class WebAudioListener:
         acoustid_api_key: Optional[str] = None,
         audio_gain: float = 1.0,
         silence_threshold: float = 0.001,
-        audio_mode: str = "microphone"
+        audio_mode: str = "microphone",
+        idle_timeout_minutes: float = 10.0,
+        idle_screen_enabled: bool = True
     ):
         self.identification_interval = identification_interval
         self.buffer_duration = buffer_duration
@@ -122,6 +129,8 @@ class WebAudioListener:
         self.audio_gain = audio_gain
         self.silence_threshold = silence_threshold
         self.audio_mode = audio_mode
+        self.idle_timeout_minutes = idle_timeout_minutes
+        self.idle_screen_enabled = idle_screen_enabled
 
         self.identifier = HybridIdentifier(acoustid_api_key=acoustid_api_key)
         self.running = False
@@ -135,6 +144,10 @@ class WebAudioListener:
         self.buffer_filled = 0
         self.current_level = 0.0
         self.lock = threading.Lock()
+
+        # Idle screen tracking
+        self.silence_started_at: Optional[float] = None
+        self.is_idle = False
 
     def _audio_callback(self, indata, frames, time_info, status):
         """Callback for audio stream."""
@@ -209,8 +222,29 @@ class WebAudioListener:
             # Check for silence
             rms = np.sqrt(np.mean(audio_data ** 2))
             if rms < self.silence_threshold:
-                update_listener_state(message="Listening (quiet)")
+                # Track silence duration
+                if self.silence_started_at is None:
+                    self.silence_started_at = time.time()
+
+                # Check if we should enter idle mode
+                if self.idle_screen_enabled:
+                    silence_duration = time.time() - self.silence_started_at
+                    if silence_duration >= (self.idle_timeout_minutes * 60):
+                        if not self.is_idle:
+                            self.is_idle = True
+                            update_listener_state(message="Listening (quiet)", idle=True)
+                    else:
+                        update_listener_state(message="Listening (quiet)", idle=False)
+                else:
+                    update_listener_state(message="Listening (quiet)")
                 continue
+
+            # Audio detected - reset silence tracking
+            if self.silence_started_at is not None:
+                self.silence_started_at = None
+                if self.is_idle:
+                    self.is_idle = False
+                    update_listener_state(idle=False)
 
             # Analyze
             update_listener_state(status="analyzing", message="Analyzing audio...")
@@ -373,7 +407,10 @@ def main():
     set_display_config({
         "pi_mode": config["pi_mode"],
         "fullscreen": config["fullscreen"],
-        "touch_mode": config["touch_mode"]
+        "touch_mode": config["touch_mode"],
+        "idle_screen_enabled": config["idle_screen_enabled"],
+        "idle_weather_location": config["idle_weather_location"],
+        "idle_timeout_minutes": config["idle_timeout_minutes"]
     })
 
     # Create listener
@@ -383,7 +420,9 @@ def main():
         device=device_id,
         audio_gain=config["audio_gain"],
         silence_threshold=config["silence_threshold"],
-        audio_mode=config["audio_mode"]
+        audio_mode=config["audio_mode"],
+        idle_timeout_minutes=config["idle_timeout_minutes"],
+        idle_screen_enabled=config["idle_screen_enabled"]
     )
 
     # Handle Ctrl+C
