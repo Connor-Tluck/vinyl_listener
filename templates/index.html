@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vinyl ID - Now Playing</title>
+    <title>Vinyl ID</title>
     <style>
         * {
             margin: 0;
@@ -15,12 +15,11 @@
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
             color: #fff;
-            min-height: 100vh;
+            height: 100vh;
             overflow: hidden;
             transition: background 1s ease;
         }
 
-        /* Dynamic gradient background based on album art */
         .background-gradient {
             position: fixed;
             top: 0;
@@ -52,76 +51,70 @@
             top: 0;
             left: 0;
             right: 0;
-            padding: 8px 15px;
+            padding: 6px 12px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             z-index: 100;
-            background: linear-gradient(to bottom, rgba(0,0,0,0.3), transparent);
+            background: rgba(0,0,0,0.4);
+            height: 32px;
         }
 
         .logo {
-            font-size: 0.9rem;
+            font-size: 0.8rem;
             font-weight: 600;
             letter-spacing: 1px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
         }
 
         .nav-links {
             display: flex;
-            gap: 15px;
+            gap: 8px;
             align-items: center;
         }
 
-        .nav-links a {
-            color: rgba(255,255,255,0.7);
-            text-decoration: none;
-            font-size: 0.8rem;
-            transition: color 0.3s;
-        }
-
-        .nav-links a:hover, .nav-links a.active {
-            color: #fff;
-        }
-
-        .fullscreen-btn {
+        .nav-btn {
             background: rgba(255,255,255,0.1);
             border: 1px solid rgba(255,255,255,0.3);
             color: rgba(255,255,255,0.7);
-            padding: 6px 10px;
+            padding: 4px 10px;
             border-radius: 4px;
             cursor: pointer;
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             transition: all 0.2s;
         }
 
-        .fullscreen-btn:hover {
+        .nav-btn:hover, .nav-btn.active {
             background: rgba(255,255,255,0.2);
             color: #fff;
         }
 
-        /* Main content */
-        .container {
+        .nav-btn.active {
+            border-color: #4ade80;
+            color: #4ade80;
+        }
+
+        /* Views */
+        .view {
+            display: none;
+            height: 100vh;
+            padding-top: 32px;
+        }
+
+        .view.active {
             display: flex;
+        }
+
+        /* ===== NOW PLAYING VIEW ===== */
+        #playingView {
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            min-height: 100vh;
-            padding: 50px 15px 60px;
-        }
-
-        /* Album art section */
-        .album-container {
-            display: flex;
-            justify-content: center;
-            margin-bottom: 15px;
+            padding-bottom: 40px;
         }
 
         .album-art {
-            width: 200px;
-            height: 200px;
+            width: 180px;
+            height: 180px;
             background: linear-gradient(135deg, #333 0%, #222 100%);
             border-radius: 8px;
             overflow: hidden;
@@ -129,6 +122,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            margin-bottom: 12px;
         }
 
         .album-art img {
@@ -138,11 +132,10 @@
         }
 
         .album-art .placeholder {
-            font-size: 4rem;
+            font-size: 3.5rem;
             opacity: 0.3;
         }
 
-        /* Track info */
         .track-info {
             text-align: center;
             max-width: 100%;
@@ -153,15 +146,15 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
+            gap: 8px;
             margin-bottom: 4px;
         }
 
         .track-title {
-            font-size: 1.3rem;
+            font-size: 1.2rem;
             font-weight: 600;
             text-shadow: 0 2px 10px rgba(0,0,0,0.3);
-            max-width: 280px;
+            max-width: 260px;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
@@ -174,80 +167,66 @@
             cursor: pointer;
             padding: 4px 6px;
             border-radius: 50%;
-            transition: transform 0.2s, background 0.2s, border-color 0.2s, color 0.2s;
+            transition: all 0.2s;
             line-height: 1;
             color: rgba(255,255,255,0.5);
-        }
-
-        .star-btn:hover {
-            background: rgba(255,255,255,0.15);
-            border-color: rgba(255,255,255,0.5);
-            transform: scale(1.1);
-        }
-
-        .star-btn:active {
-            transform: scale(0.95);
         }
 
         .star-btn.starred {
             color: #fbbf24;
             background: rgba(251, 191, 36, 0.2);
             border-color: #fbbf24;
-            animation: starPop 0.3s ease;
-        }
-
-        @keyframes starPop {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.3); }
-            100% { transform: scale(1); }
         }
 
         .track-artist {
-            font-size: 1rem;
+            font-size: 0.95rem;
             color: rgba(255,255,255,0.8);
-            margin-bottom: 8px;
+            margin-bottom: 6px;
         }
 
         .track-details {
             display: flex;
             justify-content: center;
-            gap: 15px;
-            font-size: 0.75rem;
+            gap: 12px;
+            font-size: 0.7rem;
             color: rgba(255,255,255,0.6);
         }
 
-        .track-details span {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            max-width: 140px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
+        .idle-state h2 {
+            font-size: 1.3rem;
+            font-weight: 400;
+            color: rgba(255,255,255,0.5);
+            margin-bottom: 8px;
         }
 
-        /* Status indicator */
+        .idle-state p {
+            color: rgba(255,255,255,0.3);
+            font-size: 0.85rem;
+        }
+
+        /* Status bar */
         .status-bar {
             position: fixed;
             bottom: 0;
             left: 0;
             right: 0;
-            padding: 8px 15px;
-            background: linear-gradient(to top, rgba(0,0,0,0.5), transparent);
+            padding: 6px 12px;
+            background: rgba(0,0,0,0.4);
             display: flex;
             justify-content: space-between;
             align-items: center;
+            height: 28px;
         }
 
         .status-left {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
         }
 
         .status-dot {
-            width: 8px;
-            height: 8px;
+            width: 6px;
+            height: 6px;
             border-radius: 50%;
             background: #666;
         }
@@ -263,20 +242,19 @@
         }
 
         @keyframes pulse {
-            0%, 100% { opacity: 1; box-shadow: 0 0 0 0 currentColor; }
-            50% { opacity: 0.7; box-shadow: 0 0 10px 3px currentColor; }
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
         }
 
         .status-text {
-            font-size: 0.7rem;
+            font-size: 0.65rem;
             color: rgba(255,255,255,0.7);
         }
 
-        /* Audio visualizer */
         .audio-visualizer {
             display: flex;
             gap: 2px;
-            height: 20px;
+            height: 16px;
             align-items: flex-end;
         }
 
@@ -284,53 +262,175 @@
             width: 3px;
             background: linear-gradient(to top, #4ade80, #22d3ee);
             border-radius: 2px;
-            transition: height 0.1s ease;
         }
 
-        /* Idle state */
-        .idle-state {
-            text-align: center;
+        /* ===== HISTORY VIEW ===== */
+        #historyView {
+            flex-direction: column;
+            padding: 32px 6px 28px;
+            background: #121212;
         }
 
-        .idle-state h2 {
-            font-size: 1.5rem;
-            font-weight: 400;
-            color: rgba(255,255,255,0.5);
-            margin-bottom: 10px;
+        #historyView .background-gradient,
+        #historyView .background-blur {
+            display: none;
         }
 
-        .idle-state p {
-            color: rgba(255,255,255,0.3);
+        .history-filters {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 4px;
+            flex-shrink: 0;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 4px 8px;
+            background: #1a1a1a;
+            border: 1px solid #2a2a2a;
+            border-radius: 4px;
+            color: #fff;
+            font-size: 0.65rem;
+        }
+
+        .search-input::placeholder {
+            color: #555;
+        }
+
+        .filter-btn {
+            padding: 4px 8px;
+            background: #1a1a1a;
+            border: 1px solid #2a2a2a;
+            border-radius: 4px;
+            color: #888;
+            font-size: 0.65rem;
+            cursor: pointer;
+        }
+
+        .filter-btn.active {
+            background: #2a3a2a;
+            border-color: #4ade80;
+            color: #4ade80;
+        }
+
+        .history-table-container {
+            flex: 1;
+            background: #1a1a1a;
+            border-radius: 4px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+        }
+
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .history-table thead {
+            display: table;
+            width: 100%;
+            table-layout: fixed;
+        }
+
+        .history-table th {
+            text-align: left;
+            padding: 4px 6px;
+            font-size: 0.5rem;
+            font-weight: 500;
+            color: #666;
+            text-transform: uppercase;
+            background: #151515;
+            border-bottom: 1px solid #2a2a2a;
+        }
+
+        .history-table-body {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .history-table tbody {
+            display: table;
+            width: 100%;
+            table-layout: fixed;
+        }
+
+        .history-table td {
+            padding: 4px 6px;
+            border-bottom: 1px solid #222;
+            font-size: 0.6rem;
+            color: #ccc;
+        }
+
+        .history-table tr:hover {
+            background: #1e1e1e;
+        }
+
+        .history-track-cell {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .history-cover {
+            width: 24px;
+            height: 24px;
+            border-radius: 2px;
+            background: #333;
+            object-fit: cover;
+            flex-shrink: 0;
+        }
+
+        .history-track-info {
+            min-width: 0;
+            flex: 1;
+        }
+
+        .history-track-name {
+            font-weight: 500;
+            font-size: 0.6rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .history-track-artist {
+            font-size: 0.5rem;
+            color: #888;
+        }
+
+        .history-star {
+            cursor: pointer;
+            font-size: 0.7rem;
+            color: #444;
+        }
+
+        .history-star.starred {
+            color: #fbbf24;
+        }
+
+        .text-muted {
+            color: #666;
         }
 
         .hidden {
             display: none !important;
         }
 
-        /* Pi/Touch mode styles */
-        {% if display.touch_mode %}
-        .star-btn {
-            font-size: 3rem;
-            padding: 16px 20px;
-            min-width: 80px;
-            min-height: 80px;
+        /* Scrollbar */
+        .history-table-body::-webkit-scrollbar {
+            width: 4px;
         }
 
-        .nav-links a {
-            font-size: 1.1rem;
-            padding: 10px 15px;
-        }
-        {% endif %}
-
-        {% if display.fullscreen %}
-        body {
-            cursor: none;
+        .history-table-body::-webkit-scrollbar-track {
+            background: #1a1a1a;
         }
 
-        nav {
-            padding: 15px 20px;
+        .history-table-body::-webkit-scrollbar-thumb {
+            background: #333;
+            border-radius: 2px;
         }
-        {% endif %}
     </style>
 </head>
 <body>
@@ -338,41 +438,59 @@
     <div class="background-blur" id="backgroundBlur"></div>
 
     <nav>
-        <div class="logo">
-            <span>VINYL ID</span>
-        </div>
+        <div class="logo">VINYL ID</div>
         <div class="nav-links">
-            <a href="/" class="active">Playing</a>
-            <a href="/history" id="historyLink">History</a>
-            <button class="fullscreen-btn" id="fullscreenBtn" title="Toggle fullscreen">Fullscreen</button>
+            <button class="nav-btn active" id="playingBtn">Playing</button>
+            <button class="nav-btn" id="historyBtn">History</button>
+            <button class="nav-btn" id="fullscreenBtn">Fullscreen</button>
         </div>
     </nav>
 
-    <div class="container">
-        <!-- Idle state -->
+    <!-- Now Playing View -->
+    <div class="view active" id="playingView">
         <div class="idle-state" id="idleState">
             <h2>Waiting for music...</h2>
             <p>Play a record and we'll identify it</p>
         </div>
 
-        <!-- Now playing state -->
         <div class="now-playing hidden" id="nowPlaying">
-            <div class="album-container">
-                <div class="album-art" id="albumArt">
-                    <span class="placeholder">💿</span>
-                </div>
+            <div class="album-art" id="albumArt">
+                <span class="placeholder">💿</span>
             </div>
-
             <div class="track-info">
                 <div class="track-title-row">
                     <div class="track-title" id="trackTitle">Unknown Track</div>
-                    <button class="star-btn" id="starBtn" title="Add to favorites">☆</button>
+                    <button class="star-btn" id="starBtn">☆</button>
                 </div>
                 <div class="track-artist" id="trackArtist">Unknown Artist</div>
                 <div class="track-details">
                     <span>💿 <span id="trackAlbum">Unknown Album</span></span>
                     <span>📅 <span id="trackYear">----</span></span>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- History View -->
+    <div class="view" id="historyView">
+        <div class="history-filters">
+            <input type="text" class="search-input" id="searchInput" placeholder="Search tracks, artists...">
+            <button class="filter-btn" id="starredFilter">★ Starred</button>
+        </div>
+        <div class="history-table-container">
+            <table class="history-table">
+                <thead>
+                    <tr>
+                        <th style="width: 30px;">★</th>
+                        <th>Track</th>
+                        <th style="width: 70px;">When</th>
+                    </tr>
+                </thead>
+            </table>
+            <div class="history-table-body">
+                <table class="history-table">
+                    <tbody id="historyTable"></tbody>
+                </table>
             </div>
         </div>
     </div>
@@ -391,14 +509,16 @@
             <div class="audio-bar"></div>
             <div class="audio-bar"></div>
             <div class="audio-bar"></div>
-            <div class="audio-bar"></div>
-            <div class="audio-bar"></div>
-            <div class="audio-bar"></div>
-            <div class="audio-bar"></div>
         </div>
     </div>
 
     <script>
+        // Elements
+        const playingView = document.getElementById('playingView');
+        const historyView = document.getElementById('historyView');
+        const playingBtn = document.getElementById('playingBtn');
+        const historyBtn = document.getElementById('historyBtn');
+        const fullscreenBtn = document.getElementById('fullscreenBtn');
         const idleState = document.getElementById('idleState');
         const nowPlaying = document.getElementById('nowPlaying');
         const albumArt = document.getElementById('albumArt');
@@ -412,22 +532,62 @@
         const audioBars = document.querySelectorAll('.audio-bar');
         const starBtn = document.getElementById('starBtn');
 
+        let currentView = 'playing';
         let lastTrackId = null;
         let hasTrack = false;
         let currentTrackStarred = false;
+        let allListens = [];
+        let showStarredOnly = false;
 
+        // View switching
+        function switchView(view) {
+            currentView = view;
+            playingView.classList.toggle('active', view === 'playing');
+            historyView.classList.toggle('active', view === 'history');
+            playingBtn.classList.toggle('active', view === 'playing');
+            historyBtn.classList.toggle('active', view === 'history');
+
+            // Change background for history view
+            if (view === 'history') {
+                document.body.style.background = '#121212';
+                loadHistory();
+            } else {
+                document.body.style.background = '';
+            }
+        }
+
+        playingBtn.addEventListener('click', () => switchView('playing'));
+        historyBtn.addEventListener('click', () => switchView('history'));
+
+        // Fullscreen
+        function updateFullscreenButton() {
+            fullscreenBtn.textContent = document.fullscreenElement ? 'Exit FS' : 'Fullscreen';
+        }
+
+        fullscreenBtn.addEventListener('click', () => {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(() => {});
+            } else {
+                document.exitFullscreen();
+            }
+        });
+
+        document.addEventListener('fullscreenchange', updateFullscreenButton);
+
+        // Audio level visualization
         function updateAudioLevel(level) {
             const normalized = Math.min(level, 1);
             audioBars.forEach((bar, i) => {
                 const randomFactor = 0.7 + Math.random() * 0.3;
                 const threshold = i / audioBars.length;
                 const height = normalized > threshold
-                    ? Math.min(30, (normalized - threshold) * 200 * randomFactor)
+                    ? Math.min(20, (normalized - threshold) * 150 * randomFactor)
                     : 2;
                 bar.style.height = `${height}px`;
             });
         }
 
+        // Track display
         function updateCurrentTrack(track) {
             if (!track || !track.track) {
                 if (!hasTrack) {
@@ -446,16 +606,13 @@
             trackAlbum.textContent = track.album || 'Unknown Album';
             trackYear.textContent = track.year || '----';
 
-            // Update star button
             currentTrackStarred = track.starred;
             updateStarButton();
 
-            // Update album art
             if (track.cover_url) {
                 albumArt.innerHTML = `<img src="${track.cover_url}" alt="Album Art" crossorigin="anonymous" id="albumImage">`;
                 backgroundBlur.style.backgroundImage = `url(${track.cover_url})`;
 
-                // Extract colors from album art for gradient
                 const img = document.getElementById('albumImage');
                 img.onload = () => extractColors(img);
             } else {
@@ -488,29 +645,43 @@
                 g = Math.floor(g / count);
                 b = Math.floor(b / count);
 
-                // Darken for background
                 const darken = 0.3;
-                const r1 = Math.floor(r * darken);
-                const g1 = Math.floor(g * darken);
-                const b1 = Math.floor(b * darken);
-                const r2 = Math.floor(r * darken * 0.7);
-                const g2 = Math.floor(g * darken * 0.7);
-                const b2 = Math.floor(b * darken * 0.7);
+                document.body.style.setProperty('--bg-color-1', `rgb(${Math.floor(r*darken)},${Math.floor(g*darken)},${Math.floor(b*darken)})`);
+                document.body.style.setProperty('--bg-color-2', `rgb(${Math.floor(r*darken*0.7)},${Math.floor(g*darken*0.7)},${Math.floor(b*darken*0.7)})`);
+            } catch (e) {}
+        }
 
-                document.body.style.setProperty('--bg-color-1', `rgb(${r1},${g1},${b1})`);
-                document.body.style.setProperty('--bg-color-2', `rgb(${r2},${g2},${b2})`);
+        // Star functionality
+        function updateStarButton() {
+            starBtn.textContent = currentTrackStarred ? '★' : '☆';
+            starBtn.classList.toggle('starred', currentTrackStarred);
+        }
+
+        async function toggleStar(listenId) {
+            try {
+                const response = await fetch(`/api/star/${listenId}`, { method: 'POST' });
+                const data = await response.json();
+                return data.starred;
             } catch (e) {
-                console.log('Could not extract colors:', e);
+                return null;
             }
         }
 
+        starBtn.addEventListener('click', async () => {
+            if (!lastTrackId) return;
+            const starred = await toggleStar(lastTrackId);
+            if (starred !== null) {
+                currentTrackStarred = starred;
+                updateStarButton();
+            }
+        });
+
+        // SSE connection
         let evtSource = null;
 
         function connectSSE() {
-            // Close existing connection if any
             if (evtSource) {
                 evtSource.close();
-                evtSource = null;
             }
 
             evtSource = new EventSource('/api/events');
@@ -518,15 +689,11 @@
             evtSource.onmessage = (event) => {
                 const data = JSON.parse(event.data);
 
-                // Update status
                 statusDot.className = 'status-dot ' + data.status;
                 statusText.textContent = data.message || data.status;
 
-
-                // Audio level
                 updateAudioLevel(data.audio_level || 0);
 
-                // New track
                 if (data.new_track && data.new_track.id !== lastTrackId) {
                     lastTrackId = data.new_track.id;
                     updateCurrentTrack(data.new_track);
@@ -539,17 +706,87 @@
                 evtSource.close();
                 evtSource = null;
                 statusDot.className = 'status-dot';
-                statusText.textContent = 'Disconnected - Reconnecting...';
+                statusText.textContent = 'Reconnecting...';
                 setTimeout(connectSSE, 5000);
             };
         }
 
-        // Cleanup on page unload
-        window.addEventListener('beforeunload', () => {
-            if (evtSource) evtSource.close();
+        // History
+        function formatDate(dateStr) {
+            const date = new Date(dateStr);
+            const now = new Date();
+            const diff = now - date;
+            if (diff < 3600000) return `${Math.floor(diff / 60000)}m`;
+            if (diff < 86400000) return `${Math.floor(diff / 3600000)}h`;
+            return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        }
+
+        async function loadHistory() {
+            const query = document.getElementById('searchInput').value;
+            let url = '/api/history?limit=100';
+            if (query) url += `&q=${encodeURIComponent(query)}`;
+            if (showStarredOnly) url += `&starred=1`;
+
+            try {
+                const res = await fetch(url);
+                allListens = await res.json();
+                renderHistory();
+            } catch (e) {}
+        }
+
+        function renderHistory() {
+            const tbody = document.getElementById('historyTable');
+
+            if (!allListens.length) {
+                tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;color:#555;padding:20px;">No listens found</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = allListens.map(l => `
+                <tr>
+                    <td><span class="history-star ${l.starred ? 'starred' : ''}" data-id="${l.id}">${l.starred ? '★' : '☆'}</span></td>
+                    <td>
+                        <div class="history-track-cell">
+                            ${l.cover_url ? `<img src="${l.cover_url}" class="history-cover">` : '<div class="history-cover"></div>'}
+                            <div class="history-track-info">
+                                <div class="history-track-name">${l.track}</div>
+                                <div class="history-track-artist">${l.artist}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="text-muted">${formatDate(l.listened_at)}</td>
+                </tr>
+            `).join('');
+
+            // Star click handlers
+            tbody.querySelectorAll('.history-star').forEach(el => {
+                el.addEventListener('click', async () => {
+                    const id = parseInt(el.dataset.id);
+                    const starred = await toggleStar(id);
+                    if (starred !== null) {
+                        el.textContent = starred ? '★' : '☆';
+                        el.classList.toggle('starred', starred);
+                        const listen = allListens.find(l => l.id === id);
+                        if (listen) listen.starred = starred ? 1 : 0;
+                    }
+                });
+            });
+        }
+
+        // Search
+        let searchTimeout;
+        document.getElementById('searchInput').addEventListener('input', () => {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(loadHistory, 300);
         });
 
-        // Load last track on page load
+        document.getElementById('starredFilter').addEventListener('click', () => {
+            showStarredOnly = !showStarredOnly;
+            document.getElementById('starredFilter').classList.toggle('active', showStarredOnly);
+            loadHistory();
+        });
+
+        // Load current track
         async function loadCurrentTrack() {
             try {
                 const response = await fetch('/api/current');
@@ -558,82 +795,10 @@
                     lastTrackId = track.id;
                     updateCurrentTrack(track);
                 }
-            } catch (e) {
-                console.error('Failed to load current track:', e);
-            }
+            } catch (e) {}
         }
 
-        function updateStarButton() {
-            starBtn.textContent = currentTrackStarred ? '★' : '☆';
-            starBtn.classList.toggle('starred', currentTrackStarred);
-            starBtn.title = currentTrackStarred ? 'Remove from favorites' : 'Add to favorites';
-        }
-
-        async function toggleStar() {
-            if (!lastTrackId) return;
-
-            try {
-                const response = await fetch(`/api/star/${lastTrackId}`, { method: 'POST' });
-                const data = await response.json();
-                currentTrackStarred = data.starred;
-                updateStarButton();
-            } catch (e) {
-                console.error('Failed to toggle star:', e);
-            }
-        }
-
-        starBtn.addEventListener('click', toggleStar);
-
-        // Fullscreen toggle
-        const fullscreenBtn = document.getElementById('fullscreenBtn');
-
-        function updateFullscreenButton() {
-            if (document.fullscreenElement) {
-                fullscreenBtn.textContent = 'Exit';
-            } else {
-                fullscreenBtn.textContent = 'Fullscreen';
-            }
-        }
-
-        function toggleFullscreen() {
-            if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen().catch(err => {
-                    console.log('Fullscreen error:', err);
-                });
-            } else {
-                document.exitFullscreen();
-            }
-        }
-
-        fullscreenBtn.addEventListener('click', toggleFullscreen);
-        document.addEventListener('fullscreenchange', updateFullscreenButton);
-
-        // Preserve fullscreen when navigating
-        document.getElementById('historyLink').addEventListener('click', (e) => {
-            if (document.fullscreenElement) {
-                e.preventDefault();
-                window.location.href = '/history?fs=1';
-            }
-        });
-
-        // Show fullscreen overlay if URL has fs=1 but not in fullscreen
-        function showFullscreenOverlay() {
-            const overlay = document.createElement('div');
-            overlay.id = 'fsOverlay';
-            overlay.innerHTML = 'Tap to continue in fullscreen';
-            overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.95);color:#fff;display:flex;align-items:center;justify-content:center;font-size:1.2rem;z-index:9999;cursor:pointer;';
-            overlay.addEventListener('click', () => {
-                document.documentElement.requestFullscreen().then(() => {
-                    overlay.remove();
-                }).catch(() => overlay.remove());
-            });
-            document.body.appendChild(overlay);
-        }
-
-        if (window.location.search.includes('fs=1') && !document.fullscreenElement) {
-            showFullscreenOverlay();
-        }
-
+        // Init
         loadCurrentTrack();
         connectSSE();
     </script>
