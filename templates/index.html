@@ -816,7 +816,7 @@
                 <span class="idle-weather-temp" id="idleWeatherTemp">--°F</span>
                 <span class="idle-weather-condition" id="idleWeatherCondition"></span>
             </div>
-            <div class="idle-prompt">toss on a vinyl</div>
+            <div class="idle-prompt">Toss on a Vinyl!</div>
             <div class="idle-top-artists" id="idleTopArtists"></div>
         </div>
     </div>
@@ -1003,6 +1003,8 @@
             fetchWeather();
             fetchTopArtistsForIdle();
             createParticles();
+            // Set a random prompt each time idle screen loads
+            document.querySelector('.idle-prompt').textContent = getRandomPrompt();
         }
 
         function stopIdleScreen() {
@@ -1021,7 +1023,8 @@
             idleClock.textContent = `${displayHours}:${minutes} ${ampm}`;
 
             const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-            idleDay.textContent = days[now.getDay()];
+            const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+            idleDay.textContent = `${days[now.getDay()]}, ${months[now.getMonth()]} ${now.getDate()}`;
         }
 
         async function fetchWeather() {
@@ -1093,6 +1096,29 @@
             } catch (e) {
                 idleTopArtists.innerHTML = '';
             }
+        }
+
+        // Idle screen prompts
+        const idlePrompts = [
+            "Toss on a Vinyl!",
+            "Spin something good",
+            "Drop the needle",
+            "What's on the platter?",
+            "Let the music play",
+            "Time for some tunes",
+            "Dust off a record",
+            "Groove awaits",
+            "Pick your poison",
+            "Cue the wax",
+            "Press play on analog",
+            "The turntable is waiting",
+            "Warm up the tubes",
+            "Flip to side B",
+            "Let it spin"
+        ];
+
+        function getRandomPrompt() {
+            return idlePrompts[Math.floor(Math.random() * idlePrompts.length)];
         }
 
         function handleIdleState(idle) {
