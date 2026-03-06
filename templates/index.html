@@ -169,10 +169,10 @@
 
         .star-btn {
             background: rgba(255,255,255,0.1);
-            border: 2px solid rgba(255,255,255,0.3);
-            font-size: 1.3rem;
+            border: 1px solid rgba(255,255,255,0.3);
+            font-size: 1rem;
             cursor: pointer;
-            padding: 6px 8px;
+            padding: 4px 6px;
             border-radius: 50%;
             transition: transform 0.2s, background 0.2s, border-color 0.2s, color 0.2s;
             line-height: 1;
@@ -342,8 +342,8 @@
             <span>VINYL ID</span>
         </div>
         <div class="nav-links">
-            <a href="/" class="active">Now Playing</a>
-            <a href="/history">History</a>
+            <a href="/" class="active">Playing</a>
+            <a href="/history" id="historyLink">History</a>
             <button class="fullscreen-btn" id="fullscreenBtn" title="Toggle fullscreen">Fullscreen</button>
         </div>
     </nav>
@@ -607,6 +607,21 @@
 
         fullscreenBtn.addEventListener('click', toggleFullscreen);
         document.addEventListener('fullscreenchange', updateFullscreenButton);
+
+        // Preserve fullscreen when navigating
+        document.getElementById('historyLink').addEventListener('click', (e) => {
+            if (document.fullscreenElement) {
+                e.preventDefault();
+                sessionStorage.setItem('keepFullscreen', 'true');
+                window.location.href = '/history';
+            }
+        });
+
+        // Re-enter fullscreen if coming from another page
+        if (sessionStorage.getItem('keepFullscreen') === 'true') {
+            sessionStorage.removeItem('keepFullscreen');
+            document.documentElement.requestFullscreen().catch(() => {});
+        }
 
         loadCurrentTrack();
         connectSSE();
