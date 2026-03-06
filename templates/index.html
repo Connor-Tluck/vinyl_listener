@@ -271,11 +271,159 @@
             background: #121212;
         }
 
-        #historyView .background-gradient,
-        #historyView .background-blur {
-            display: none;
+        /* Sub-tabs for history */
+        .history-tabs {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 6px;
+            flex-shrink: 0;
         }
 
+        .history-tab {
+            padding: 4px 12px;
+            background: #1a1a1a;
+            border: 1px solid #2a2a2a;
+            border-radius: 4px;
+            color: #888;
+            font-size: 0.65rem;
+            cursor: pointer;
+        }
+
+        .history-tab.active {
+            background: #2a2a2a;
+            color: #fff;
+            border-color: #444;
+        }
+
+        .history-panel {
+            display: none;
+            flex-direction: column;
+            flex: 1;
+            min-height: 0;
+            overflow: hidden;
+        }
+
+        .history-panel.active {
+            display: flex;
+        }
+
+        /* Stats row */
+        .stats-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 8px;
+            flex-shrink: 0;
+        }
+
+        .stat-box {
+            flex: 1;
+            background: #1a1a1a;
+            border-radius: 4px;
+            padding: 8px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #4ade80;
+        }
+
+        .stat-label {
+            font-size: 0.5rem;
+            color: #666;
+            text-transform: uppercase;
+        }
+
+        /* Top lists side by side */
+        .top-lists {
+            display: flex;
+            gap: 8px;
+            flex: 1;
+            min-height: 0;
+            overflow: hidden;
+        }
+
+        .top-card {
+            flex: 1;
+            background: #1a1a1a;
+            border-radius: 4px;
+            padding: 6px;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+            overflow: hidden;
+        }
+
+        .top-card h3 {
+            font-size: 0.6rem;
+            color: #888;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            flex-shrink: 0;
+        }
+
+        .top-list {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .top-item {
+            display: flex;
+            align-items: center;
+            padding: 4px 0;
+            border-bottom: 1px solid #222;
+            gap: 6px;
+        }
+
+        .top-item:last-child {
+            border-bottom: none;
+        }
+
+        .top-rank {
+            width: 14px;
+            font-size: 0.6rem;
+            color: #555;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .top-rank.gold { color: #fbbf24; }
+
+        .top-cover {
+            width: 24px;
+            height: 24px;
+            border-radius: 3px;
+            background: #333;
+            object-fit: cover;
+            flex-shrink: 0;
+        }
+
+        .top-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .top-name {
+            font-size: 0.55rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            color: #ddd;
+        }
+
+        .top-sub {
+            font-size: 0.45rem;
+            color: #666;
+        }
+
+        .top-count {
+            font-size: 0.55rem;
+            color: #4ade80;
+            font-weight: 500;
+        }
+
+        /* Tracks panel */
         .history-filters {
             display: flex;
             gap: 4px;
@@ -419,17 +567,27 @@
         }
 
         /* Scrollbar */
-        .history-table-body::-webkit-scrollbar {
+        .history-table-body::-webkit-scrollbar,
+        .top-list::-webkit-scrollbar {
             width: 4px;
         }
 
-        .history-table-body::-webkit-scrollbar-track {
+        .history-table-body::-webkit-scrollbar-track,
+        .top-list::-webkit-scrollbar-track {
             background: #1a1a1a;
         }
 
-        .history-table-body::-webkit-scrollbar-thumb {
+        .history-table-body::-webkit-scrollbar-thumb,
+        .top-list::-webkit-scrollbar-thumb {
             background: #333;
             border-radius: 2px;
+        }
+
+        .empty-msg {
+            text-align: center;
+            color: #555;
+            padding: 20px;
+            font-size: 0.7rem;
         }
     </style>
 </head>
@@ -473,24 +631,60 @@
 
     <!-- History View -->
     <div class="view" id="historyView">
-        <div class="history-filters">
-            <input type="text" class="search-input" id="searchInput" placeholder="Search tracks, artists...">
-            <button class="filter-btn" id="starredFilter">★ Starred</button>
+        <div class="history-tabs">
+            <button class="history-tab active" id="dashboardTab">Dashboard</button>
+            <button class="history-tab" id="tracksTab">All Tracks</button>
         </div>
-        <div class="history-table-container">
-            <table class="history-table">
-                <thead>
-                    <tr>
-                        <th style="width: 30px;">★</th>
-                        <th>Track</th>
-                        <th style="width: 70px;">When</th>
-                    </tr>
-                </thead>
-            </table>
-            <div class="history-table-body">
+
+        <!-- Dashboard Panel -->
+        <div class="history-panel active" id="dashboardPanel">
+            <div class="stats-row">
+                <div class="stat-box">
+                    <div class="stat-value" id="totalPlays">0</div>
+                    <div class="stat-label">Plays</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value" id="uniqueTracks">0</div>
+                    <div class="stat-label">Tracks</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value" id="uniqueArtists">0</div>
+                    <div class="stat-label">Artists</div>
+                </div>
+            </div>
+            <div class="top-lists">
+                <div class="top-card">
+                    <h3>Top Tracks</h3>
+                    <div class="top-list" id="topTracks"></div>
+                </div>
+                <div class="top-card">
+                    <h3>Top Artists</h3>
+                    <div class="top-list" id="topArtists"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- All Tracks Panel -->
+        <div class="history-panel" id="tracksPanel">
+            <div class="history-filters">
+                <input type="text" class="search-input" id="searchInput" placeholder="Search tracks, artists...">
+                <button class="filter-btn" id="starredFilter">★ Starred</button>
+            </div>
+            <div class="history-table-container">
                 <table class="history-table">
-                    <tbody id="historyTable"></tbody>
+                    <thead>
+                        <tr>
+                            <th style="width: 30px;">★</th>
+                            <th>Track</th>
+                            <th style="width: 70px;">When</th>
+                        </tr>
+                    </thead>
                 </table>
+                <div class="history-table-body">
+                    <table class="history-table">
+                        <tbody id="historyTable"></tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
@@ -532,7 +726,14 @@
         const audioBars = document.querySelectorAll('.audio-bar');
         const starBtn = document.getElementById('starBtn');
 
+        // History tabs
+        const dashboardTab = document.getElementById('dashboardTab');
+        const tracksTab = document.getElementById('tracksTab');
+        const dashboardPanel = document.getElementById('dashboardPanel');
+        const tracksPanel = document.getElementById('tracksPanel');
+
         let currentView = 'playing';
+        let currentHistoryTab = 'dashboard';
         let lastTrackId = null;
         let hasTrack = false;
         let currentTrackStarred = false;
@@ -547,17 +748,31 @@
             playingBtn.classList.toggle('active', view === 'playing');
             historyBtn.classList.toggle('active', view === 'history');
 
-            // Change background for history view
             if (view === 'history') {
                 document.body.style.background = '#121212';
-                loadHistory();
+                loadDashboard();
             } else {
                 document.body.style.background = '';
             }
         }
 
+        // History tab switching
+        function switchHistoryTab(tab) {
+            currentHistoryTab = tab;
+            dashboardTab.classList.toggle('active', tab === 'dashboard');
+            tracksTab.classList.toggle('active', tab === 'tracks');
+            dashboardPanel.classList.toggle('active', tab === 'dashboard');
+            tracksPanel.classList.toggle('active', tab === 'tracks');
+
+            if (tab === 'tracks') {
+                loadHistory();
+            }
+        }
+
         playingBtn.addEventListener('click', () => switchView('playing'));
         historyBtn.addEventListener('click', () => switchView('history'));
+        dashboardTab.addEventListener('click', () => switchHistoryTab('dashboard'));
+        tracksTab.addEventListener('click', () => switchHistoryTab('tracks'));
 
         // Fullscreen
         function updateFullscreenButton() {
@@ -711,7 +926,65 @@
             };
         }
 
-        // History
+        // Dashboard
+        async function loadDashboard() {
+            // Load stats
+            try {
+                const res = await fetch('/api/stats');
+                const stats = await res.json();
+                document.getElementById('totalPlays').textContent = stats.total_listens || 0;
+                document.getElementById('uniqueTracks').textContent = stats.unique_tracks || 0;
+                document.getElementById('uniqueArtists').textContent = stats.unique_artists || 0;
+            } catch (e) {}
+
+            // Load top tracks
+            try {
+                const res = await fetch('/api/top-tracks?limit=10');
+                const tracks = await res.json();
+                const container = document.getElementById('topTracks');
+
+                if (!tracks.length) {
+                    container.innerHTML = '<div class="empty-msg">No tracks yet</div>';
+                } else {
+                    container.innerHTML = tracks.map((t, i) => `
+                        <div class="top-item">
+                            <span class="top-rank ${i < 3 ? 'gold' : ''}">${i + 1}</span>
+                            ${t.cover_url ? `<img src="${t.cover_url}" class="top-cover">` : '<div class="top-cover"></div>'}
+                            <div class="top-info">
+                                <div class="top-name">${t.track}</div>
+                                <div class="top-sub">${t.artist}</div>
+                            </div>
+                            <span class="top-count">${t.play_count}x</span>
+                        </div>
+                    `).join('');
+                }
+            } catch (e) {}
+
+            // Load top artists
+            try {
+                const res = await fetch('/api/top-artists?limit=10');
+                const artists = await res.json();
+                const container = document.getElementById('topArtists');
+
+                if (!artists.length) {
+                    container.innerHTML = '<div class="empty-msg">No artists yet</div>';
+                } else {
+                    container.innerHTML = artists.map((a, i) => `
+                        <div class="top-item">
+                            <span class="top-rank ${i < 3 ? 'gold' : ''}">${i + 1}</span>
+                            <div class="top-cover" style="display:flex;align-items:center;justify-content:center;font-size:0.7rem;">🎤</div>
+                            <div class="top-info">
+                                <div class="top-name">${a.artist}</div>
+                                <div class="top-sub">${a.unique_tracks} tracks</div>
+                            </div>
+                            <span class="top-count">${a.play_count}x</span>
+                        </div>
+                    `).join('');
+                }
+            } catch (e) {}
+        }
+
+        // History (All Tracks)
         function formatDate(dateStr) {
             const date = new Date(dateStr);
             const now = new Date();
