@@ -1569,6 +1569,191 @@
             background: rgba(255, 255, 255, 0.2);
             color: #fff;
         }
+
+        /* ===== RESPONSIVE LAYOUT FOR SMALL SCREENS (Pi 800x480) ===== */
+        @media screen and (max-width: 900px) {
+            /* Force now-playing to always stack vertically on small screens */
+            .now-playing,
+            .now-playing.with-tracklist {
+                flex-direction: column !important;
+                align-items: center !important;
+                justify-content: flex-start !important;
+                padding-top: 8px;
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            /* Hide the side panels on small screens when details are on */
+            .now-playing.with-tracklist .tracklist-panel,
+            .now-playing.with-tracklist .stats-panel {
+                display: none !important;
+            }
+
+            /* Show compact track context instead */
+            .now-playing.with-tracklist .compact-context {
+                display: flex !important;
+            }
+
+            /* Ensure main content is centered */
+            .now-playing-main {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                width: 100%;
+            }
+
+            /* Smaller album art on Pi */
+            .album-art {
+                width: min(calc(100vh - 200px), 55vw);
+                height: min(calc(100vh - 200px), 55vw);
+                margin-bottom: 8px;
+            }
+
+            /* Smaller text for Pi */
+            .track-title {
+                font-size: clamp(1.2rem, 5vw, 1.8rem);
+            }
+
+            .track-artist {
+                font-size: clamp(1rem, 4vw, 1.4rem);
+                margin-bottom: 4px;
+            }
+
+            .track-details {
+                font-size: clamp(0.75rem, 2.5vw, 1rem);
+                gap: 10px;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .star-btn {
+                font-size: 1.2rem;
+                padding: 4px 6px;
+            }
+
+            /* Compact track-title row */
+            .track-title-row {
+                gap: 6px;
+            }
+        }
+
+        /* Compact track context - shown on small screens when details enabled */
+        .compact-context {
+            display: none;
+            flex-direction: column;
+            width: 100%;
+            max-width: 500px;
+            padding: 8px 16px;
+            margin-top: 8px;
+        }
+
+        .compact-context-header {
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: rgba(255, 255, 255, 0.4);
+            margin-bottom: 6px;
+            text-align: center;
+        }
+
+        .compact-track-list {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .compact-track {
+            display: flex;
+            align-items: center;
+            padding: 6px 10px;
+            border-radius: 6px;
+            gap: 10px;
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .compact-track.current {
+            background: rgba(74, 222, 128, 0.15);
+        }
+
+        .compact-track.current .compact-track-title {
+            color: #4ade80;
+            font-weight: 500;
+        }
+
+        .compact-track.current .compact-track-pos {
+            color: #4ade80;
+        }
+
+        .compact-track.adjacent {
+            opacity: 0.5;
+        }
+
+        .compact-track-pos {
+            width: 20px;
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.4);
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        .compact-track-title {
+            flex: 1;
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.85);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .compact-track-duration {
+            font-size: 0.7rem;
+            color: rgba(255, 255, 255, 0.4);
+            flex-shrink: 0;
+        }
+
+        /* Extra small height adjustments (Pi 480px height) */
+        @media screen and (max-height: 520px) {
+            #playingView {
+                padding: 36px 4px 32px;
+            }
+
+            .album-art {
+                width: min(calc(100vh - 180px), 50vw);
+                height: min(calc(100vh - 180px), 50vw);
+                margin-bottom: 6px;
+            }
+
+            .track-info {
+                padding: 0 8px;
+            }
+
+            .track-title {
+                font-size: clamp(1rem, 4vw, 1.5rem);
+            }
+
+            .track-artist {
+                font-size: clamp(0.85rem, 3.5vw, 1.2rem);
+                margin-bottom: 2px;
+            }
+
+            .track-details {
+                font-size: clamp(0.7rem, 2.2vw, 0.9rem);
+                gap: 8px;
+            }
+
+            .compact-context {
+                padding: 4px 12px;
+                margin-top: 4px;
+            }
+
+            .compact-track {
+                padding: 4px 8px;
+            }
+
+            .compact-track-title {
+                font-size: 0.8rem;
+            }
+        }
     </style>
 </head>
 <body>
@@ -1720,6 +1905,12 @@
                 <div class="stat-item">
                     <div class="stat-value" id="statWant">--</div>
                     <div class="stat-label">Want It</div>
+                </div>
+            </div>
+            <!-- Compact context for small screens -->
+            <div class="compact-context" id="compactContext">
+                <div class="compact-context-header">Now Playing</div>
+                <div class="compact-track-list" id="compactTrackList">
                 </div>
             </div>
         </div>
@@ -2720,9 +2911,12 @@
                 }
             }
 
+            const compactTrackList = document.getElementById('compactTrackList');
+
             if (currentIndex === -1) {
                 // Current track not found in tracklist
                 tracklistTracks.innerHTML = '<div class="tracklist-error">Track not found in tracklist</div>';
+                if (compactTrackList) compactTrackList.innerHTML = '';
                 return;
             }
 
@@ -2742,6 +2936,7 @@
                 contextTracks.push({ track: tracks[i], type: 'next' });
             }
 
+            // Desktop tracklist panel
             let html = contextTracks.map(({ track, type }) => `
                 <div class="tracklist-track ${type}">
                     <span class="tracklist-position">${track.position || '-'}</span>
@@ -2749,8 +2944,19 @@
                     <span class="tracklist-duration">${track.duration || ''}</span>
                 </div>
             `).join('');
-
             tracklistTracks.innerHTML = html;
+
+            // Compact context for small screens (Pi)
+            if (compactTrackList) {
+                let compactHtml = contextTracks.map(({ track, type }) => `
+                    <div class="compact-track ${type === 'current' ? 'current' : 'adjacent'}">
+                        <span class="compact-track-pos">${track.position || '-'}</span>
+                        <span class="compact-track-title">${escapeHtml(track.title)}</span>
+                        <span class="compact-track-duration">${track.duration || ''}</span>
+                    </div>
+                `).join('');
+                compactTrackList.innerHTML = compactHtml;
+            }
         }
 
         function isCurrentTrack(tracklistTitle, currentTrack) {
