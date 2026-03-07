@@ -1572,74 +1572,110 @@
 
         /* ===== RESPONSIVE LAYOUT FOR SMALL SCREENS (Pi 800x480) ===== */
         @media screen and (max-width: 900px) {
-            /* Force now-playing to always stack vertically on small screens */
-            .now-playing,
+            /* Keep horizontal layout but make panels narrower */
             .now-playing.with-tracklist {
-                flex-direction: column !important;
-                align-items: center !important;
-                justify-content: flex-start !important;
-                padding-top: 8px;
-                overflow-y: auto;
-                -webkit-overflow-scrolling: touch;
+                flex-direction: row;
+                align-items: center;
+                justify-content: center;
+                gap: 12px;
+                padding: 0 8px;
             }
 
-            /* Hide the side panels on small screens when details are on */
-            .now-playing.with-tracklist .tracklist-panel,
-            .now-playing.with-tracklist .stats-panel {
+            /* Narrower tracklist panel for Pi */
+            .tracklist-panel {
+                width: 160px;
+                padding: 10px;
+                margin-right: 0;
+            }
+
+            .tracklist-header {
+                font-size: 0.65rem;
+                margin-bottom: 8px;
+                padding-bottom: 6px;
+            }
+
+            .tracklist-track {
+                padding: 6px 4px;
+                gap: 6px;
+            }
+
+            .tracklist-position {
+                width: 18px;
+                font-size: 0.75rem;
+            }
+
+            .tracklist-title {
+                font-size: 0.75rem;
+            }
+
+            .tracklist-duration {
+                font-size: 0.65rem;
+            }
+
+            /* Narrower stats panel for Pi */
+            .stats-panel {
+                width: 120px;
+                padding: 10px;
+                margin-left: 0;
+                gap: 12px;
+            }
+
+            .stats-panel .stat-value {
+                font-size: 1.3rem;
+            }
+
+            .stats-panel .stat-label {
+                font-size: 0.6rem;
+            }
+
+            .stats-panel .stat-sublabel {
+                font-size: 0.55rem;
+            }
+
+            /* Hide compact context on Pi - we show the real panels */
+            .compact-context {
                 display: none !important;
             }
 
-            /* Show compact track context instead */
-            .now-playing.with-tracklist .compact-context {
-                display: flex !important;
-                order: 10;
-            }
-
-            /* Ensure now-playing-main comes first */
-            .now-playing-main {
-                order: 1;
-            }
-
-            /* Ensure main content is centered */
-            .now-playing-main {
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                width: 100%;
-            }
-
-            /* Smaller album art on Pi */
+            /* Smaller album art on Pi to fit with side panels */
             .album-art {
-                width: min(calc(100vh - 200px), 55vw);
-                height: min(calc(100vh - 200px), 55vw);
-                margin-bottom: 8px;
+                width: min(calc(100vh - 160px), 340px);
+                height: min(calc(100vh - 160px), 340px);
+                margin-bottom: 6px;
             }
 
             /* Smaller text for Pi */
             .track-title {
-                font-size: clamp(1.2rem, 5vw, 1.8rem);
+                font-size: clamp(1rem, 4vw, 1.4rem);
             }
 
             .track-artist {
-                font-size: clamp(1rem, 4vw, 1.4rem);
-                margin-bottom: 4px;
+                font-size: clamp(0.85rem, 3vw, 1.1rem);
+                margin-bottom: 2px;
             }
 
             .track-details {
-                font-size: clamp(0.75rem, 2.5vw, 1rem);
-                gap: 10px;
+                font-size: clamp(0.65rem, 2vw, 0.85rem);
+                gap: 8px;
                 flex-wrap: wrap;
                 justify-content: center;
             }
 
             .star-btn {
-                font-size: 1.2rem;
-                padding: 4px 6px;
+                font-size: 1rem;
+                padding: 3px 5px;
             }
 
-            /* Compact track-title row */
             .track-title-row {
-                gap: 6px;
+                gap: 5px;
+            }
+
+            /* Now playing main area */
+            .now-playing-main {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                flex-shrink: 1;
             }
         }
 
