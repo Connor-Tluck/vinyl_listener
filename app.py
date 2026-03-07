@@ -4,6 +4,7 @@ import json
 import time
 import urllib.request
 import urllib.error
+import urllib.parse
 from flask import Flask, jsonify, render_template, Response, request
 
 from database import (
@@ -12,6 +13,13 @@ from database import (
     get_sessions, get_session_listens, toggle_star, get_starred_albums,
     get_genre_stats, check_track_in_history
 )
+
+# Discogs API configuration
+DISCOGS_TOKEN = "XttbwbkRakiKYQCuKUHmUvPrBefAeyQtKnAXAtgn"
+DISCOGS_USER_AGENT = "VinylID/1.0"
+
+# Cache for tracklists to avoid repeated API calls
+tracklist_cache = {}
 
 app = Flask(__name__)
 
@@ -38,10 +46,41 @@ display_config = {
     "touch_mode": False
 }
 
+# Runtime configuration (can be updated via API)
+runtime_config = {
+    "audio_mode": "microphone",
+    "audio_gain": 1.0,
+    "silence_threshold": 0.001,
+    "identification_interval": 15,
+    "sample_duration": 15,
+    "duplicate_window": 10,
+    "idle_screen_enabled": True,
+    "idle_timeout_minutes": 5,
+    "idle_weather_location": "NYC"
+}
+
+# Callback to notify listener of config changes
+config_change_callback = None
+
+
+def set_config_change_callback(callback):
+    """Set callback function to be called when config changes."""
+    global config_change_callback
+    config_change_callback = callback
+
 
 def set_display_config(config: dict):
     """Set display configuration from run.py."""
     display_config.update(config)
+    # Also update runtime_config with any overlapping values
+    for key in ["idle_screen_enabled", "idle_timeout_minutes", "idle_weather_location"]:
+        if key in config:
+            runtime_config[key] = config[key]
+
+
+def set_runtime_config(config: dict):
+    """Set runtime configuration from run.py."""
+    runtime_config.update(config)
 
 
 def update_listener_state(status=None, current_track=None, audio_level=None, message=None, idle=None):
@@ -177,6 +216,168 @@ def api_check_history():
     return jsonify({"in_history": in_history})
 
 
+@app.route("/api/tracklist")
+def api_tracklist():
+    """Get tracklist for an album from Discogs."""
+    artist = request.args.get('artist')
+    album = request.args.get('album')
+
+    if not artist or not album:
+        return jsonify({"error": "artist and album required"}), 400
+
+    # Check cache first
+    cache_key = f"{artist}|{album}".lower()
+    if cache_key in tracklist_cache:
+        return jsonify(tracklist_cache[cache_key])
+
+    try:
+        # Search for the release on Discogs
+        search_query = urllib.parse.quote(f"{artist} {album}")
+        search_url = f"https://api.discogs.com/database/search?q={search_query}&type=release&per_page=5"
+
+        headers = {
+            "User-Agent": DISCOGS_USER_AGENT,
+            "Authorization": f"Discogs token={DISCOGS_TOKEN}"
+        }
+
+        req = urllib.request.Request(search_url, headers=headers)
+        with urllib.request.urlopen(req, timeout=10) as response:
+            search_data = json.loads(response.read().decode())
+
+        results = search_data.get("results", [])
+        if not results:
+            return jsonify({"error": "Album not found", "tracks": []})
+
+        # Get the first matching release
+        release_id = results[0].get("id")
+
+        # Fetch the release details for tracklist
+        release_url = f"https://api.discogs.com/releases/{release_id}"
+        req = urllib.request.Request(release_url, headers=headers)
+        with urllib.request.urlopen(req, timeout=10) as response:
+            release_data = json.loads(response.read().decode())
+
+        tracklist = release_data.get("tracklist", [])
+        tracks = []
+        for t in tracklist:
+            # Skip headings (type_ == "heading")
+            if t.get("type_") == "heading":
+                continue
+            tracks.append({
+                "position": t.get("position", ""),
+                "title": t.get("title", ""),
+                "duration": t.get("duration", "")
+            })
+
+        # Get community stats
+        community = release_data.get("community", {})
+        rating = community.get("rating", {})
+
+        # Get videos
+        videos = release_data.get("videos", [])
+        video_list = []
+        for v in videos:
+            if v.get("embed", False):
+                video_list.append({
+                    "title": v.get("title", ""),
+                    "url": v.get("uri", ""),
+                    "duration": v.get("duration", 0)
+                })
+
+        result = {
+            "album": release_data.get("title", album),
+            "artist": release_data.get("artists_sort", artist),
+            "year": release_data.get("year"),
+            "tracks": tracks,
+            "videos": video_list,
+            "stats": {
+                "have": community.get("have", 0),
+                "want": community.get("want", 0),
+                "rating": rating.get("average", 0),
+                "rating_count": rating.get("count", 0)
+            }
+        }
+
+        # Cache the result
+        tracklist_cache[cache_key] = result
+
+        return jsonify(result)
+
+    except (urllib.error.URLError, json.JSONDecodeError, KeyError) as e:
+        return jsonify({"error": str(e), "tracks": []})
+
+
+@app.route("/api/videos")
+def api_videos():
+    """Get music videos from cached tracklist data."""
+    limit = request.args.get('limit', 20, type=int)
+
+    # Collect videos from all cached tracklist data
+    videos = []
+    for cache_key, data in tracklist_cache.items():
+        if isinstance(data, dict) and "videos" in data:
+            artist = data.get("artist", "")
+            for v in data.get("videos", []):
+                videos.append({
+                    "title": v.get("title", ""),
+                    "url": v.get("url", ""),
+                    "artist": artist
+                })
+
+    # If no cached videos, try to fetch for top tracks
+    if not videos:
+        tracks = get_top_tracks(5)
+        headers = {
+            "User-Agent": DISCOGS_USER_AGENT,
+            "Authorization": f"Discogs token={DISCOGS_TOKEN}"
+        }
+
+        for track_data in tracks:
+            artist = track_data.get("artist", "")
+            album = track_data.get("album", "")
+            if not artist or not album:
+                continue
+
+            cache_key = f"{artist}|{album}".lower()
+            if cache_key in tracklist_cache:
+                continue
+
+            try:
+                search_query = urllib.parse.quote(f"{artist} {album}")
+                search_url = f"https://api.discogs.com/database/search?q={search_query}&type=release&per_page=1"
+
+                req = urllib.request.Request(search_url, headers=headers)
+                with urllib.request.urlopen(req, timeout=5) as response:
+                    search_data = json.loads(response.read().decode())
+
+                results = search_data.get("results", [])
+                if not results:
+                    continue
+
+                release_id = results[0].get("id")
+                release_url = f"https://api.discogs.com/releases/{release_id}"
+                req = urllib.request.Request(release_url, headers=headers)
+                with urllib.request.urlopen(req, timeout=5) as response:
+                    release_data = json.loads(response.read().decode())
+
+                for v in release_data.get("videos", []):
+                    if v.get("embed", False):
+                        videos.append({
+                            "title": v.get("title", ""),
+                            "url": v.get("uri", ""),
+                            "artist": artist
+                        })
+
+                # Only fetch a couple to avoid timeouts
+                if len(videos) >= 5:
+                    break
+
+            except:
+                continue
+
+    return jsonify(videos[:limit])
+
+
 @app.route("/api/weather")
 def api_weather():
     """Get weather data for idle screen."""
@@ -209,6 +410,53 @@ def api_weather():
         return jsonify(weather_data)
     except (urllib.error.URLError, json.JSONDecodeError, KeyError) as e:
         return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/config")
+def api_get_config():
+    """Get current runtime configuration."""
+    return jsonify(runtime_config)
+
+
+@app.route("/api/config", methods=["POST"])
+def api_update_config():
+    """Update runtime configuration."""
+    data = request.get_json()
+    if not data:
+        return jsonify({"error": "No data provided"}), 400
+
+    updated = []
+    for key, value in data.items():
+        if key in runtime_config:
+            # Validate and convert types
+            if key in ["audio_gain", "silence_threshold"]:
+                try:
+                    value = float(value)
+                except (ValueError, TypeError):
+                    continue
+            elif key in ["identification_interval", "sample_duration", "duplicate_window", "idle_timeout_minutes"]:
+                try:
+                    value = int(value)
+                except (ValueError, TypeError):
+                    continue
+            elif key == "idle_screen_enabled":
+                value = bool(value)
+            elif key == "audio_mode":
+                if value not in ["microphone", "line_in"]:
+                    continue
+
+            runtime_config[key] = value
+            updated.append(key)
+
+            # Also update display_config for idle settings
+            if key in ["idle_screen_enabled", "idle_timeout_minutes", "idle_weather_location"]:
+                display_config[key] = value
+
+    # Notify listener of changes if callback is set
+    if updated and config_change_callback:
+        config_change_callback(runtime_config)
+
+    return jsonify({"updated": updated, "config": runtime_config})
 
 
 @app.route("/api/events")

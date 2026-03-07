@@ -23,7 +23,7 @@ import yaml
 
 from identifier import HybridIdentifier, IdentificationResult
 from database import log_listen, init_db
-from app import app, update_listener_state, set_display_config
+from app import app, update_listener_state, set_display_config, set_runtime_config, set_config_change_callback
 
 
 # Default configuration
@@ -413,6 +413,19 @@ def main():
         "idle_screen_enabled": config["idle_screen_enabled"],
         "idle_weather_location": config["idle_weather_location"],
         "idle_timeout_minutes": config["idle_timeout_minutes"]
+    })
+
+    # Set runtime config for API
+    set_runtime_config({
+        "audio_mode": config["audio_mode"],
+        "audio_gain": config["audio_gain"],
+        "silence_threshold": config["silence_threshold"],
+        "identification_interval": config["identification_interval"],
+        "sample_duration": config["sample_duration"],
+        "duplicate_window": config["duplicate_window"],
+        "idle_screen_enabled": config["idle_screen_enabled"],
+        "idle_timeout_minutes": config["idle_timeout_minutes"],
+        "idle_weather_location": config["idle_weather_location"]
     })
 
     # Create listener
