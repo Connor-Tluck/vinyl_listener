@@ -2862,10 +2862,15 @@
                 videoNowPlayingContainer.classList.remove('visible');
                 nowPlayingMain.classList.remove('hidden');
                 videoNpPlayer.src = '';
-                // Restore details panels if enabled
+                // Remove hidden class first, then restore visible state based on detailsVisible
+                tracklistPanel.classList.remove('hidden');
+                statsPanel.classList.remove('hidden');
                 if (detailsVisible) {
                     tracklistPanel.classList.add('visible');
                     statsPanel.classList.add('visible');
+                } else {
+                    tracklistPanel.classList.remove('visible');
+                    statsPanel.classList.remove('visible');
                 }
             }
         }
