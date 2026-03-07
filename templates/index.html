@@ -1592,6 +1592,12 @@
             /* Show compact track context instead */
             .now-playing.with-tracklist .compact-context {
                 display: flex !important;
+                order: 10;
+            }
+
+            /* Ensure now-playing-main comes first */
+            .now-playing-main {
+                order: 1;
             }
 
             /* Ensure main content is centered */
@@ -1713,6 +1719,66 @@
 
         /* Extra small height adjustments (Pi 480px height) */
         @media screen and (max-height: 520px) {
+            /* Default idle screen - add buffer for nav/status bars */
+            #idleView {
+                padding: 40px 16px 36px;
+            }
+
+            .idle-content {
+                transform: scale(0.85);
+                transform-origin: center center;
+            }
+
+            .idle-clock {
+                font-size: clamp(3rem, 15vw, 5rem);
+                margin-bottom: 0.3rem;
+            }
+
+            .idle-weather {
+                margin-bottom: 1rem;
+            }
+
+            .idle-prompt {
+                margin-bottom: 1rem;
+            }
+
+            .idle-stats-row {
+                gap: 24px;
+                margin-bottom: 1rem;
+            }
+
+            /* Video idle screen sidebar - add padding for nav/status */
+            .video-idle-sidebar {
+                padding: 40px 16px 36px;
+                gap: 12px;
+            }
+
+            .video-idle-clock {
+                font-size: clamp(1.5rem, 6vw, 2.5rem);
+            }
+
+            .video-idle-day {
+                font-size: 0.75rem;
+            }
+
+            .video-idle-weather {
+                font-size: 1rem;
+                gap: 6px;
+            }
+
+            .video-idle-stats {
+                gap: 10px;
+            }
+
+            .video-idle-stat-value {
+                font-size: 1.2rem;
+            }
+
+            .video-idle-stat-label {
+                font-size: 0.6rem;
+            }
+
+            /* Now playing view */
             #playingView {
                 padding: 36px 4px 32px;
             }
@@ -1909,8 +1975,11 @@
             </div>
             <!-- Compact context for small screens -->
             <div class="compact-context" id="compactContext">
-                <div class="compact-context-header">Now Playing</div>
+                <div class="compact-context-header">Tracklist</div>
                 <div class="compact-track-list" id="compactTrackList">
+                    <div class="compact-track adjacent">
+                        <span class="compact-track-title" style="color: rgba(255,255,255,0.5);">Loading tracklist...</span>
+                    </div>
                 </div>
             </div>
         </div>
